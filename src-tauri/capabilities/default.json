@@ -1,0 +1,31 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities",
+  "windows": ["*"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "shell:allow-open",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "whisper-cli",
+          "cmd": "whisper-cli",
+          "sidecar": true,
+          "args": true
+        }
+      ]
+    },
+    "dialog:default",
+    "fs:default",
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "global-shortcut:default",
+    "autostart:default",
+    "log:default",
+    "notification:default",
+    "store:default",
+    "updater:default"
+  ]
+}

@@ -1,0 +1,29 @@
+Speech to Text
+Copyright (c) 2025-2026 Ciro Cesar Maciel. Licensed under the MIT License (LICENSE).
+
+The app bundles third-party material under its own license:
+
+- whisper.cpp and ggml (whisper-cli and whisper-server, built from source by
+  scripts/whisper.sh), by Georgi Gerganov and the ggml authors.
+  MIT License. https://github.com/ggml-org/whisper.cpp
+
+- Silero VAD (ggml-silero-v6.2.0.bin, downloaded by scripts/whisper.sh), by Silero Team.
+  MIT License. https://github.com/snakers4/silero-vad
+
+- The Whisper speech models the app downloads on demand, by OpenAI, converted to ggml
+  by the whisper.cpp project. MIT License. https://github.com/openai/whisper
+
+- Montserrat (src/fonts), by the Montserrat Project Authors.
+  SIL Open Font License 1.1: src/fonts/OFL.txt. https://github.com/JulietaUla/Montserrat
+
+- Tabler Icons (src/icons.svg), by Pawel Kuna.
+  MIT License. https://github.com/tabler/tabler-icons
+
+- The app icon and the menu bar glyphs (src-tauri/icons) are the letter S set in Candal,
+  by Vernon Adams. SIL Open Font License 1.1. https://fonts.google.com/specimen/Candal
+
+- Tauri and the Rust and JavaScript packages listed in src-tauri/Cargo.lock and bun.lock,
+  each under its own license (MIT or Apache-2.0 for Tauri).
+
+The name "Speech to Text by Ciro Cesar Maciel" and the app icon identify the maker's
+official build. A fork that ships its own build should use its own name and icon.
