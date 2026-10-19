@@ -1,0 +1,3 @@
+/* Permission prompts in Brazilian Portuguese. Keep in step with en.lproj. */
+"NSMicrophoneUsageDescription" = "Precisamos de acesso ao microfone para transcrever sua voz.";
+"NSAccessibilityUsageDescription" = "Precisamos de acessibilidade para colar texto transcrito automaticamente.";

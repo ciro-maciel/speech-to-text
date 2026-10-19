@@ -2,9 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>pt-BR</string>
+    </array>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Precisamos de acesso ao microfone para transcrever sua voz.</string>
+    <string>Speech to Text needs the microphone to transcribe your voice.</string>
     <key>NSAccessibilityUsageDescription</key>
-    <string>Precisamos de acessibilidade para colar texto transcrito automaticamente.</string>
+    <string>Speech to Text needs Accessibility to paste the transcribed text for you.</string>
 </dict>
 </plist>

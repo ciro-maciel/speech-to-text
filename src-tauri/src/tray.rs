@@ -19,6 +19,7 @@ use tauri::{Manager, Wry};
 use tauri_plugin_log::log;
 
 use crate::hotkey::HotkeyManager;
+use crate::i18n::{is_portuguese, tr};
 
 const TRAY_ID: &str = "main";
 
@@ -41,17 +42,18 @@ static ACTIVITY_GENERATION: AtomicU64 = AtomicU64::new(0);
 /// Microphones as reported by the renderer: (deviceId, label).
 static MICROPHONES: LazyLock<Mutex<Vec<(String, String)>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 
-pub const LANGUAGES: [(&str, &str); 10] = [
-    ("en", "Inglês"),
-    ("pt", "Português"),
-    ("es", "Espanhol"),
-    ("fr", "Francês"),
-    ("de", "Alemão"),
-    ("it", "Italiano"),
-    ("ja", "Japonês"),
-    ("ko", "Coreano"),
-    ("zh", "Chinês"),
-    ("ru", "Russo"),
+/// Translation targets: (code, English name, Portuguese name).
+const LANGUAGES: [(&str, &str, &str); 10] = [
+    ("en", "English", "Inglês"),
+    ("pt", "Portuguese", "Português"),
+    ("es", "Spanish", "Espanhol"),
+    ("fr", "French", "Francês"),
+    ("de", "German", "Alemão"),
+    ("it", "Italian", "Italiano"),
+    ("ja", "Japanese", "Japonês"),
+    ("ko", "Korean", "Coreano"),
+    ("zh", "Chinese", "Chinês"),
+    ("ru", "Russian", "Russo"),
 ];
 
 macro_rules! frames {
@@ -205,7 +207,7 @@ fn spin_ring(app: &tauri::AppHandle, generation: u64) {
 /// Human hotkey: "⌘2" on macOS, "Ctrl+2" elsewhere.
 pub fn display_hotkey(accelerator: &str) -> String {
     if accelerator.is_empty() {
-        return "sem atalho".to_string();
+        return tr("no shortcut", "sem atalho").to_string();
     }
     let mac = cfg!(target_os = "macos");
     // Apple's modifier order is ⌃ ⌥ ⇧ ⌘; the key itself goes last.
@@ -229,7 +231,7 @@ pub fn display_hotkey(accelerator: &str) -> String {
                 "control" | "ctrl" | "leftcontrol" | "rightcontrol" => if mac { "⌃" } else { "Ctrl" },
                 "shift" | "leftshift" | "rightshift" => if mac { "⇧" } else { "Shift" },
                 "alt" | "option" | "leftalt" | "rightalt" | "rightoption" => if mac { "⌥" } else { "Alt" },
-                "space" => "Espaço",
+                "space" => tr("Space", "Espaço"),
                 _ => "",
             };
             if named.is_empty() { p.trim().to_uppercase() } else { named.to_string() }
@@ -249,16 +251,25 @@ fn local_hhmm(epoch_ms: u64) -> String {
 
 fn status_text(app: &tauri::AppHandle) -> String {
     if let Some(until) = HotkeyManager::paused_until() {
-        return format!("Pausado até {}", local_hhmm(until));
+        return if is_portuguese() {
+            format!("Pausado até {}", local_hhmm(until))
+        } else {
+            format!("Paused until {}", local_hhmm(until))
+        };
     }
     let (hotkey, mode) = {
         let st = app.state::<crate::AppState>();
         let cfg = st.config.lock().unwrap();
         (cfg.hotkey.clone(), cfg.trigger_mode.clone())
     };
-    let verb = if mode == "hold" { "segure" } else { "toque" };
+    let keys = display_hotkey(&hotkey);
     #[allow(unused_mut)]
-    let mut text = format!("Pronto · {verb} {} para ditar", display_hotkey(&hotkey));
+    let mut text = match (is_portuguese(), mode == "hold") {
+        (true, true) => format!("Pronto · segure {keys} para ditar"),
+        (true, false) => format!("Pronto · toque {keys} para ditar"),
+        (false, true) => format!("Ready · hold {keys} to dictate"),
+        (false, false) => format!("Ready · press {keys} to dictate"),
+    };
     #[cfg(target_os = "linux")]
     {
         let perms = crate::permissions::check_all_permissions();
@@ -276,15 +287,19 @@ fn tooltip_text(app: &tauri::AppHandle) -> String {
 /// What needs the user, if anything, as a menu label.
 fn attention_label(perms: &crate::permissions::PermissionStatus) -> Option<String> {
     if perms.microphone == "denied" {
-        return Some("Microfone bloqueado · Liberar…".to_string());
+        return Some(tr("Microphone Blocked · Allow…", "Microfone bloqueado · Liberar…").to_string());
     }
     if perms.accessibility_required && !perms.accessibility {
-        return Some("Colagem desligada · Liberar…".to_string());
+        return Some(tr("Auto-Paste Off · Allow…", "Colagem desligada · Liberar…").to_string());
     }
     perms
         .missing_paste_tool
         .as_ref()
-        .map(|tool| format!("{tool} não encontrado · Ver comando…"))
+        .map(|tool| if is_portuguese() {
+            format!("{tool} não encontrado · Ver comando…")
+        } else {
+            format!("{tool} Not Found · See Command…")
+        })
 }
 
 fn truncate(text: &str, max: usize) -> String {
@@ -311,21 +326,21 @@ fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<Wry>> {
     // On Linux the icon click only opens the menu, so opening the window
     // has to be a menu item.
     #[cfg(target_os = "linux")]
-    items.push(Box::new(MenuItem::with_id(app, "open", "Abrir o Speech to Text", true, None::<&str>)?));
+    items.push(Box::new(MenuItem::with_id(app, "open", tr("Open Speech to Text", "Abrir o Speech to Text"), true, None::<&str>)?));
 
     let has_last = history.last_text().is_some();
     items.push(Box::new(MenuItem::with_id(
         app,
         "paste_last",
-        "Colar a última transcrição",
+        tr("Paste Last Transcription", "Colar a última transcrição"),
         has_last,
         Some(crate::hotkey::PASTE_LAST_HOTKEY),
     )?));
 
     let recent = history.recent_texts(5);
-    let recent_menu = Submenu::with_id(app, "recent", "Últimas transcrições", true)?;
+    let recent_menu = Submenu::with_id(app, "recent", tr("Recent Transcriptions", "Últimas transcrições"), true)?;
     if recent.is_empty() {
-        recent_menu.append(&MenuItem::with_id(app, "recent_none", "Nenhuma ainda", false, None::<&str>)?)?;
+        recent_menu.append(&MenuItem::with_id(app, "recent_none", tr("None Yet", "Nenhuma ainda"), false, None::<&str>)?)?;
     } else {
         for (i, text) in recent.iter().enumerate() {
             recent_menu.append(&MenuItem::with_id(app, format!("recent:{i}"), truncate(text, 60), true, None::<&str>)?)?;
@@ -335,18 +350,23 @@ fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<Wry>> {
     items.push(Box::new(sep()?));
 
     items.push(Box::new(CheckMenuItem::with_id(
-        app, "refine", "Refinar com IA", true, cfg.refinement_enabled, None::<&str>,
+        app, "refine", tr("Refine with AI", "Refinar com IA"), true, cfg.refinement_enabled, None::<&str>,
     )?));
 
     let target_label = LANGUAGES
         .iter()
-        .find(|(code, _)| *code == cfg.target_language)
-        .map(|(_, name)| *name)
-        .unwrap_or("Inglês");
-    let lang_menu = Submenu::with_id(app, "lang", format!("Traduzir para: {target_label}"), cfg.translate_enabled)?;
-    for (code, name) in LANGUAGES {
+        .find(|(code, _, _)| *code == cfg.target_language)
+        .map(|(_, en, pt)| tr(en, pt))
+        .unwrap_or(tr("English", "Inglês"));
+    let lang_title = if is_portuguese() {
+        format!("Traduzir para: {target_label}")
+    } else {
+        format!("Translate To: {target_label}")
+    };
+    let lang_menu = Submenu::with_id(app, "lang", lang_title, cfg.translate_enabled)?;
+    for (code, en, pt) in LANGUAGES {
         lang_menu.append(&CheckMenuItem::with_id(
-            app, format!("lang:{code}"), name, true, cfg.target_language == code, None::<&str>,
+            app, format!("lang:{code}"), tr(en, pt), true, cfg.target_language == code, None::<&str>,
         )?)?;
     }
     items.push(Box::new(lang_menu));
@@ -357,10 +377,12 @@ fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<Wry>> {
         .iter()
         .find(|(id, _)| *id == selected_mic)
         .map(|(_, label)| label.clone())
-        .unwrap_or_else(|| "Padrão do sistema".to_string());
-    let mic_menu = Submenu::with_id(app, "mic", format!("Microfone: {}", truncate(&mic_name, 32)), true)?;
+        .unwrap_or_else(|| tr("System Default", "Padrão do sistema").to_string());
+    let mic_menu = Submenu::with_id(
+        app, "mic", format!("{}: {}", tr("Microphone", "Microfone"), truncate(&mic_name, 32)), true,
+    )?;
     mic_menu.append(&CheckMenuItem::with_id(
-        app, "mic:", "Padrão do sistema", true, selected_mic.is_empty(), None::<&str>,
+        app, "mic:", tr("System Default", "Padrão do sistema"), true, selected_mic.is_empty(), None::<&str>,
     )?)?;
     for (id, label) in &mics {
         mic_menu.append(&CheckMenuItem::with_id(
@@ -369,7 +391,7 @@ fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<Wry>> {
     }
     items.push(Box::new(mic_menu));
 
-    let model_menu = Submenu::with_id(app, "model", format!("Modelo: {}", cfg.model), true)?;
+    let model_menu = Submenu::with_id(app, "model", format!("{}: {}", tr("Model", "Modelo"), cfg.model), true)?;
     for name in crate::models::AVAILABLE_MODELS {
         if crate::config::get_model_path(app, name).exists() {
             model_menu.append(&CheckMenuItem::with_id(
@@ -382,24 +404,40 @@ fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<Wry>> {
 
     match HotkeyManager::paused_until() {
         Some(until) => items.push(Box::new(MenuItem::with_id(
-            app, "resume", format!("Retomar atalhos (pausado até {})", local_hhmm(until)), true, None::<&str>,
+            app,
+            "resume",
+            if is_portuguese() {
+                format!("Retomar atalhos (pausado até {})", local_hhmm(until))
+            } else {
+                format!("Resume Shortcuts (Paused Until {})", local_hhmm(until))
+            },
+            true,
+            None::<&str>,
         )?)),
-        None => items.push(Box::new(MenuItem::with_id(app, "pause", "Pausar atalhos por 1 hora", true, None::<&str>)?)),
+        None => items.push(Box::new(MenuItem::with_id(app, "pause", tr("Pause Shortcuts for 1 Hour", "Pausar atalhos por 1 hora"), true, None::<&str>)?)),
     }
     if let Some(label) = attention {
         items.push(Box::new(MenuItem::with_id(app, "permissions", label, true, None::<&str>)?));
     }
     if let Some(version) = crate::updates::pending() {
         items.push(Box::new(MenuItem::with_id(
-            app, "update_restart", format!("Reiniciar e atualizar para {version}"), true, None::<&str>,
+            app,
+            "update_restart",
+            if is_portuguese() {
+                format!("Reiniciar e atualizar para {version}")
+            } else {
+                format!("Restart and Update to {version}")
+            },
+            true,
+            None::<&str>,
         )?));
     }
     items.push(Box::new(sep()?));
 
-    items.push(Box::new(MenuItem::with_id(app, "settings", "Configurações…", true, Some("CmdOrCtrl+,"))?));
-    items.push(Box::new(MenuItem::with_id(app, "check_updates", "Verificar atualizações", true, None::<&str>)?));
+    items.push(Box::new(MenuItem::with_id(app, "settings", tr("Settings…", "Configurações…"), true, Some("CmdOrCtrl+,"))?));
+    items.push(Box::new(MenuItem::with_id(app, "check_updates", tr("Check for Updates…", "Verificar atualizações"), true, None::<&str>)?));
     items.push(Box::new(sep()?));
-    items.push(Box::new(MenuItem::with_id(app, "quit", "Sair", true, Some("CmdOrCtrl+Q"))?));
+    items.push(Box::new(MenuItem::with_id(app, "quit", tr("Quit Speech to Text", "Sair"), true, Some("CmdOrCtrl+Q"))?));
 
     let refs: Vec<&dyn IsMenuItem<Wry>> = items.iter().map(|i| i.as_ref()).collect();
     Menu::with_items(app, &refs)

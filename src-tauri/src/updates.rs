@@ -110,7 +110,7 @@ pub fn start_background(app: &tauri::AppHandle) {
 pub fn install_pending(app: &tauri::AppHandle, restart: bool) -> Result<(), String> {
     let pending = PENDING.lock().unwrap().take();
     let Some(Pending { update, bytes }) = pending else {
-        return Err("nenhuma atualização baixada".to_string());
+        return Err(crate::i18n::tr("no update downloaded", "nenhuma atualização baixada").to_string());
     };
     log::info!("[updates] installing {}", update.version);
     // The resident whisper-server runs from inside the bundle being replaced.
@@ -124,7 +124,7 @@ pub fn install_pending(app: &tauri::AppHandle, restart: bool) -> Result<(), Stri
 
 fn friendly(error: &str) -> String {
     if error.contains("error sending request") || error.contains("dns") || error.contains("connect") {
-        "sem conexão".to_string()
+        crate::i18n::tr("no connection", "sem conexão").to_string()
     } else {
         error.to_string()
     }

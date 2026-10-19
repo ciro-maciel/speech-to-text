@@ -85,7 +85,8 @@ impl ModelManager {
 
         // Follow redirects (reqwest does this by default, but handle status)
         if !response.status().is_success() {
-            return Err(format!("Failed to download: {}", response.status()));
+            // Shown after "Download failed:" in the window, in either language.
+            return Err(format!("HTTP {}", response.status()));
         }
 
         let total_length = response.content_length().unwrap_or(0);

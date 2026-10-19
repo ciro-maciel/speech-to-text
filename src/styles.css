@@ -125,6 +125,9 @@ a { color: var(--g9); font-weight: 700; }
 .stats span { font-size: 12px; font-weight: 500; color: var(--g5); }
 .hist { border-top: 1px solid var(--g2); }
 .hrow { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 12px; padding: 11px 4px 11px 0; border-bottom: 1px solid var(--g2); align-items: baseline; cursor: pointer; transition: background 120ms ease; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; width: 100%; }
+/* English shows a 12-hour clock ("03:56 PM"), wider than "15:56". */
+html[lang="en"] .hrow { grid-template-columns: 64px minmax(0, 1fr) auto; }
+.ht { white-space: nowrap; }
 .hrow:hover { background: var(--g1); }
 .ht { font-size: 12px; font-weight: 500; color: var(--g5); font-variant-numeric: tabular-nums; }
 .hx { font-size: 14px; font-weight: 500; color: var(--g8); display: flex; flex-direction: column; gap: 2px; line-height: 1.45; overflow-wrap: anywhere; }

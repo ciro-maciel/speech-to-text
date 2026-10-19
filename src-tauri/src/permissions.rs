@@ -222,7 +222,11 @@ pub fn request_microphone_access() -> Result<(), String> {
             return Ok(());
         }
     }
-    Err("Nenhum painel de som encontrado (instale o pavucontrol)".to_string())
+    Err(crate::i18n::tr(
+        "No sound settings panel found (install pavucontrol)",
+        "Nenhum painel de som encontrado (instale o pavucontrol)",
+    )
+    .to_string())
 }
 
 #[cfg(target_os = "linux")]

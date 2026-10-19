@@ -1,0 +1,3 @@
+/* Permission prompts in English. Keep in step with pt-BR.lproj. */
+"NSMicrophoneUsageDescription" = "Speech to Text needs the microphone to transcribe your voice.";
+"NSAccessibilityUsageDescription" = "Speech to Text needs Accessibility to paste the transcribed text for you.";

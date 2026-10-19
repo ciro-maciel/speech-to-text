@@ -39,6 +39,7 @@ tokio = { version = "1", features = ["full"] }
 base64 = "0.22"
 dotenvy = "0.15"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+sys-locale = "0.3"
 
 # Used to read NSScreen.visibleFrame so the overlay anchors respect the
 # macOS menu bar and Dock. Pulled in by Tauri transitively; we declare them

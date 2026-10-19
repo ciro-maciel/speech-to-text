@@ -42,6 +42,7 @@ Every shortcut can be changed in the settings window, opened from the menu bar i
 | Local transcription | whisper.cpp with Metal, kept loaded in memory so the first word does not wait for a cold start |
 | Models | tiny, base, small, medium and large-v3-turbo; the app downloads the one you choose from Hugging Face |
 | Languages | Portuguese, English, Spanish, French, German, Italian, or automatic detection |
+| Interface | English and Brazilian Portuguese, following the Mac's language |
 | Voice detection | Silero VAD trims silence before Whisper sees the audio |
 | Glossary | Names, brands and acronyms written the way you registered them |
 | Refine and translate | Optional. Cleans up hesitations or translates the dictation through [OpenRouter](https://openrouter.ai), with your own key and the model you pick |
@@ -87,7 +88,6 @@ scripts/smoke-test.sh "src-tauri/target/release/bundle/macos/Speech to Text.app/
 ## Limits
 
 - Published for macOS 11 or newer on Apple Silicon only. The code is Tauri and also builds for Windows and Linux, but those builds are not published or maintained right now.
-- The interface is in Portuguese for now.
 - Pasting needs Accessibility permission; without it, the text stays on the clipboard.
 
 ## Contributing

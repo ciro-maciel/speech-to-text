@@ -34,4 +34,5 @@ scripts/smoke-test.sh "$APP/speech-to-text" "$APP" path/to/ggml-tiny.bin path/to
 - The bundle identifier `click.ciromaciel.speech-to-text` never changes: macOS ties Microphone and Accessibility to it.
 - `latest.json` and the updater's public key in `tauri.conf.json` belong to the official build; a fork changes both.
 - The version lives in `package.json`; bumping it on `main` is a release.
-- Bun, never npm. The interface text is in Portuguese; code, comments and file names are in English.
+- Bun, never npm. Code, comments and file names are in English.
+- Every user-facing string exists in English and Brazilian Portuguese (en.lproj / pt-BR.lproj or the i18n module); a change that adds text adds both. The interface follows the Mac's language (first preferred language starting with `pt` → Brazilian Portuguese, anything else → English), with no in-app switch: `src/i18n.js` for the window and the overlay, `src-tauri/src/i18n.rs` (`tr(en, pt)`) for the menu bar and dialogs, `src-tauri/locales/<lang>.lproj/InfoPlist.strings` for the permission prompts. The dictation language (Whisper) and the translation target are separate settings and never follow the interface.

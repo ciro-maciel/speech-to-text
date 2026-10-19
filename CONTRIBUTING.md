@@ -30,7 +30,8 @@ Quit any running Speech to Text first: a second copy hands over to the open one 
 
 - **The audio never leaves the Mac.** Transcription stays in whisper.cpp, on device. The only network calls are the model download, the update check and, when the person turns them on, Refine and Translate (text only, their own key). A new one needs a reason in the pull request and a line in the README's Privacy section.
 - No analytics, no account, no remote font or script: the window loads only what is in `src/`.
-- Code, comments and file names in English; the interface text is in Portuguese for now.
+- Code, comments and file names in English. The interface is in English and Brazilian Portuguese, following the Mac's language.
+- Every user-facing string exists in English and Brazilian Portuguese (en.lproj / pt-BR.lproj or the i18n module); a change that adds text adds both. In this app that is `src/i18n.js` for the window and the overlay, `src-tauri/src/i18n.rs` (`tr(en, pt)`) for the menu bar and dialogs, and `src-tauri/locales/<lang>.lproj/InfoPlist.strings` for the permission prompts.
 - The bundle identifier (`click.ciromaciel.speech-to-text`) never changes: macOS ties Microphone and Accessibility to it.
 
 ## Reporting a bug

@@ -13,6 +13,8 @@
  *   plugs/unplugs a mic while pre-heat is on.
  */
 
+import { t } from "../i18n.js";
+
 let audioContext = null;
 let mediaStreamSource = null;
 let scriptProcessor = null;
@@ -56,7 +58,7 @@ export async function getAvailableMicrophones() {
     .filter((d) => d.kind === "audioinput")
     .map((d) => ({
       deviceId: d.deviceId,
-      label: d.label || `Microfone ${d.deviceId.slice(0, 8)}`,
+      label: d.label || `${t("dict.mic")} ${d.deviceId.slice(0, 8)}`,
     }));
 }
 
@@ -99,7 +101,7 @@ export async function warmUpMicrophone(preferredDeviceId = null) {
 
     const track = warmStream.getAudioTracks()[0];
     const labelSuffix = normalizedPref ? "" : " (Default do Sistema)";
-    log(`Microfone pré-aquecido: ${track?.label || "default"}${labelSuffix}`);
+    log(`Microphone warmed up: ${track?.label || "default"}${labelSuffix}`);
     log(`Track state: enabled=${track?.enabled} muted=${track?.muted} readyState=${track?.readyState}`);
     try {
       const settings = track?.getSettings?.();
@@ -140,7 +142,7 @@ export async function warmUpMicrophone(preferredDeviceId = null) {
         if (!firstNonZeroSeen) {
           zeroTickCounter++;
           if (zeroTickCounter === 50) {
-            log("Microfone selecionado não está captando áudio. Verifique o volume de entrada nas configurações de som do sistema.", "error");
+            log("The selected microphone is not picking up audio. Check the input volume in the system sound settings.", "error");
           }
         }
       }
@@ -167,7 +169,7 @@ export async function warmUpMicrophone(preferredDeviceId = null) {
     mediaStreamSource.connect(scriptProcessor);
     scriptProcessor.connect(audioContext.destination);
 
-    log("Microfone pronto para gravação instantânea!");
+    log("Microphone ready for instant recording");
     return true;
   } catch (err) {
     console.error("warmUpMicrophone failed:", err);
@@ -185,7 +187,7 @@ export async function stopMicrophone() {
 export async function startAudioRecording() {
   // Make absolutely sure the stream is healthy before recording starts.
   if (!isStreamHealthy()) {
-    log("Stream não pronto, reaquecendo microfone...");
+    log("Stream not ready, warming up the microphone again...");
     const ok = await warmUpMicrophone(currentPreferredDeviceId);
     if (!ok) return false;
   }
@@ -223,8 +225,8 @@ export async function stopAudioRecording(shouldCoolDown = false) {
   let sum = 0;
   for (let i = 0; i < merged.length; i++) sum += merged[i] * merged[i];
   const avgRms = Math.sqrt(sum / merged.length);
-  log(`Volume Médio: ${avgRms.toFixed(4)}`);
-  if (avgRms < 0.001) log("Áudio praticamente em silêncio absoluto.");
+  log(`Average volume: ${avgRms.toFixed(4)}`);
+  if (avgRms < 0.001) log("Audio is almost pure silence.");
 
   const targetSampleRate = 16000;
   const downsampled = downsampleBuffer(merged, audioContext.sampleRate, targetSampleRate);
@@ -241,7 +243,7 @@ export async function stopAudioRecording(shouldCoolDown = false) {
 if (typeof navigator !== "undefined" && navigator.mediaDevices?.addEventListener) {
   navigator.mediaDevices.addEventListener("devicechange", () => {
     if (warmStream || audioContext) {
-      log("Dispositivo de áudio mudou. Reaquecendo microfone...");
+      log("Audio device changed. Warming up the microphone again...");
       warmUpMicrophone(currentPreferredDeviceId).catch(() => {});
     }
   });

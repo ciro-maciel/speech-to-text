@@ -1,5 +1,6 @@
 mod config;
 mod history;
+mod i18n;
 mod hotkey;
 mod models;
 mod permissions;
@@ -76,7 +77,11 @@ pub fn apply_setting(app: &AppHandle, key: &str, value: serde_json::Value) -> Re
     if key == "hotkey" || key == "translateHotkey" {
         let combo = value.as_str().unwrap_or_default();
         if !combo.is_empty() && HotkeyManager::parse_shortcut(combo).is_none() {
-            return Err(format!("atalho inválido: {combo}"));
+            return Err(if i18n::is_portuguese() {
+                format!("atalho inválido: {combo}")
+            } else {
+                format!("invalid shortcut: {combo}")
+            });
         }
     }
     let state = app.state::<AppState>();
@@ -154,12 +159,22 @@ pub fn show_update_dialog(app: &AppHandle, status: &updates::UpdateStatus) {
     if status.ready {
         let app2 = app.clone();
         app.dialog()
-            .message(format!(
-                "A versão {latest} já foi baixada. Você está na {}. Reinicie para usar a nova.",
-                status.current
+            .message(if i18n::is_portuguese() {
+                format!(
+                    "A versão {latest} já foi baixada. Você está na {}. Reinicie para usar a nova.",
+                    status.current
+                )
+            } else {
+                format!(
+                    "Version {latest} has been downloaded. You are on {}. Restart to use the new one.",
+                    status.current
+                )
+            })
+            .title(i18n::tr("Updates", "Atualizações"))
+            .buttons(MessageDialogButtons::OkCancelCustom(
+                i18n::tr("Restart Now", "Reiniciar agora").to_string(),
+                i18n::tr("Later", "Depois").to_string(),
             ))
-            .title("Atualizações")
-            .buttons(MessageDialogButtons::OkCancelCustom("Reiniciar agora".to_string(), "Depois".to_string()))
             .show(move |restart| {
                 if restart {
                     if let Err(e) = updates::install_pending(&app2, true) {
@@ -172,9 +187,16 @@ pub fn show_update_dialog(app: &AppHandle, status: &updates::UpdateStatus) {
     if status.newer {
         // Found, but the download failed: the page has the installer.
         app.dialog()
-            .message(format!("A versão {latest} está disponível. Você está na {}.", status.current))
-            .title("Atualizações")
-            .buttons(MessageDialogButtons::OkCancelCustom("Baixar".to_string(), "Agora não".to_string()))
+            .message(if i18n::is_portuguese() {
+                format!("A versão {latest} está disponível. Você está na {}.", status.current)
+            } else {
+                format!("Version {latest} is available. You are on {}.", status.current)
+            })
+            .title(i18n::tr("Updates", "Atualizações"))
+            .buttons(MessageDialogButtons::OkCancelCustom(
+                i18n::tr("Download", "Baixar").to_string(),
+                i18n::tr("Not Now", "Agora não").to_string(),
+            ))
             .show(|download| {
                 if download {
                     open_with_system(updates::PAGE_URL);
@@ -182,16 +204,22 @@ pub fn show_update_dialog(app: &AppHandle, status: &updates::UpdateStatus) {
             });
         return;
     }
+    let pt = i18n::is_portuguese();
     let text = match &status.error {
-        Some(err) => format!(
+        Some(err) if pt => format!(
             "Você está na versão {}. Não foi possível verificar se há outra: {err}.",
             status.current
         ),
-        None => format!("Você está na versão mais recente ({}).", status.current),
+        Some(err) => format!(
+            "You are on version {}. Could not check for a newer one: {err}.",
+            status.current
+        ),
+        None if pt => format!("Você está na versão mais recente ({}).", status.current),
+        None => format!("You are on the latest version ({}).", status.current),
     };
     app.dialog()
         .message(text)
-        .title("Atualizações")
+        .title(i18n::tr("Updates", "Atualizações"))
         .buttons(MessageDialogButtons::Ok)
         .show(|_| {});
 }
@@ -320,6 +348,7 @@ async fn get_app_info(app: AppHandle) -> Result<serde_json::Value, String> {
         "version": app.package_info().version.to_string(),
         "platform": std::env::consts::OS,
         "pasteLastHotkey": hotkey::PASTE_LAST_HOTKEY,
+        "locale": i18n::locale(),
     }))
 }
 
@@ -353,10 +382,11 @@ async fn get_diagnostics(app: AppHandle, state: State<'_, AppState>) -> Result<S
     let tail: Vec<String> = lines.iter().rev().take(150).rev().cloned().collect();
     let perms = permissions::check_all_permissions();
     Ok(format!(
-        "Speech to Text {version} · {os}\nmodelo={model} refinar={refine} detector={vad} modelo_carregado={loaded}\n\
-         permissões: microfone={mic} colagem={paste}\n\n{log}",
+        "Speech to Text {version} · {os} · {locale}\nmodel={model} refine={refine} vad={vad} model_loaded={loaded}\n\
+         permissions: microphone={mic} paste={paste}\n\n{log}",
         version = app.package_info().version,
         os = std::env::consts::OS,
+        locale = i18n::locale(),
         model = cfg.model,
         refine = cfg.refinement_enabled,
         vad = cfg.voice_detection,
@@ -402,7 +432,11 @@ async fn transcribe_audio_command(
 
     let model_path = config::get_model_path(&app, &cfg.model);
     if !model_path.exists() {
-        let message = format!("Modelo {} não encontrado", cfg.model);
+        let message = if i18n::is_portuguese() {
+            format!("Modelo {} não encontrado", cfg.model)
+        } else {
+            format!("Model {} not found", cfg.model)
+        };
         if !is_test {
             flash_overlay(&app, "error", serde_json::json!({ "message": message }), 2500);
         }
@@ -446,7 +480,7 @@ async fn transcribe_audio_command(
                 if empty {
                     flash_overlay(&app, "nothing", serde_json::json!({}), 700);
                 } else {
-                    flash_overlay(&app, "error", serde_json::json!({ "message": "A transcrição falhou" }), 2500);
+                    flash_overlay(&app, "error", serde_json::json!({ "message": i18n::tr("Transcription failed", "A transcrição falhou") }), 2500);
                 }
             }
             finish_idle(&app);
@@ -502,7 +536,7 @@ async fn transcribe_audio_command(
             Ok(_) => original.text.clone(),
             Err(e) => {
                 log::warn!("[refine] failed: {e}");
-                llm_error = Some("IA sem resposta · colado sem refinar".to_string());
+                llm_error = Some(i18n::tr("No reply from the AI · pasted unrefined", "IA sem resposta · colado sem refinar").to_string());
                 original.text.clone()
             }
         }
@@ -525,7 +559,7 @@ async fn transcribe_audio_command(
             Ok(_) => refined_text.clone(),
             Err(e) => {
                 log::warn!("[translate] failed: {e}");
-                llm_error = Some("Tradução falhou · colado o original".to_string());
+                llm_error = Some(i18n::tr("Translation failed · pasted the original", "Tradução falhou · colado o original").to_string());
                 refined_text.clone()
             }
         }
@@ -569,7 +603,7 @@ async fn transcribe_audio_command(
         }
         (Err(e), _) => {
             log::warn!("[paste] {e}");
-            flash_overlay(&app, "error", serde_json::json!({ "message": "Não colou · texto copiado" }), 2500);
+            flash_overlay(&app, "error", serde_json::json!({ "message": i18n::tr("Not pasted · text copied", "Não colou · texto copiado") }), 2500);
         }
         (Ok(()), Some(message)) => {
             flash_overlay(&app, "error", serde_json::json!({ "message": message }), 2500);
@@ -769,6 +803,7 @@ pub fn run() {
                 }
             }
 
+            log::info!("[i18n] interface {}", i18n::locale());
             config::adopt_earlier_settings(app.handle());
             let config = load_config(app.handle());
 

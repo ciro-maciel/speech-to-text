@@ -42,6 +42,7 @@ Todos os atalhos podem ser trocados na janela de ajustes, aberta pelo ícone na 
 | Transcrição local | whisper.cpp com Metal, mantido carregado na memória para a primeira palavra não esperar |
 | Modelos | tiny, base, small, medium e large-v3-turbo; o app baixa o que você escolher, do Hugging Face |
 | Idiomas | Português, inglês, espanhol, francês, alemão, italiano, ou detecção automática |
+| Interface | Inglês e português do Brasil, seguindo o idioma do Mac |
 | Detecção de voz | O Silero VAD corta o silêncio antes de o Whisper ouvir o áudio |
 | Glossário | Nomes, marcas e siglas escritos do jeito que você cadastrou |
 | Refinar e traduzir | Opcional. Tira hesitações ou traduz o ditado pelo [OpenRouter](https://openrouter.ai), com a sua chave e o modelo que você escolher |
@@ -87,7 +88,6 @@ scripts/smoke-test.sh "src-tauri/target/release/bundle/macos/Speech to Text.app/
 ## Limites
 
 - Publicado só para macOS 11 ou mais novo, em Apple Silicon. O código é Tauri e também compila para Windows e Linux, mas esses builds não são publicados nem mantidos agora.
-- A interface está em português por enquanto.
 - Colar precisa da permissão de Acessibilidade; sem ela, o texto fica na área de transferência.
 
 ## Contribuir

@@ -28,34 +28,41 @@ import {
   buildAcceleratorString,
 } from "./renderer/ui.js";
 
+import { LOCALE, t, tn, applyI18n, formatInt, formatDecimal, formatTime } from "./i18n.js";
+
 const api = window.api;
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 setLogCallback((msg, type) => log(msg, type === "error" ? "error" : "info"));
 
+applyI18n();
+$$("[data-i18n-days]").forEach((b) => { b.textContent = t("sys.history.days", { n: formatInt(Number(b.dataset.i18nDays)) }); });
+
 let config = null;
 let appInfo = { version: "", platform: "" };
 let historyCache = [];
 let currentPane = "inicio";
 
-const KIND_LABEL = { local: "Local", refined: "Refinado", translated: "Traduzido", nothing: "—" };
-const LANGUAGE_NAME = { en: "inglês", pt: "português", es: "espanhol", fr: "francês", de: "alemão", it: "italiano", ja: "japonês", ko: "coreano", zh: "chinês", ru: "russo" };
+const kindLabel = (kind) => (kind === "nothing" ? "—" : ["local", "refined", "translated"].includes(kind) ? t(`kind.${kind}`) : "");
+// Mid-sentence: Portuguese writes language names in lower case, English capitalizes them.
+const languageName = (code) => {
+  const name = t(`lang.${code}`) || t("lang.en");
+  return LOCALE === "pt-BR" ? name.toLowerCase() : name;
+};
 const MODEL_SIZE = { tiny: 77691713, base: 147951465, small: 487601967, medium: 1533763059, "large-v3-turbo": 1624555275 };
-const MODEL_NOTE = { tiny: "rascunho rápido", "large-v3-turbo": "o mais preciso" };
+const MODEL_NOTE = { tiny: "model.tiny", "large-v3-turbo": "model.large" };
 
 // ─────────────────────────────────────────────────────────────────
 // Formatting
 // ─────────────────────────────────────────────────────────────────
-const decimal = (n, digits = 1) => n.toFixed(digits).replace(".", ",");
-const formatSeconds = (ms) => `${decimal(ms / 1000)}s`;
-const formatBytes = (b) => (b >= 1e9 ? `${decimal(b / 1e9)} GB` : `${Math.round(b / 1e6)} MB`);
-const formatInt = (n) => n.toLocaleString("pt-BR");
+const formatSeconds = (ms) => `${formatDecimal(ms / 1000)}s`;
+const formatBytes = (b) => (b >= 1e9 ? `${formatDecimal(b / 1e9)} GB` : `${formatInt(Math.round(b / 1e6))} MB`);
 const escapeHtml = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function keyLabel(part) {
   const p = part.trim();
-  const named = { space: "Espaço", enter: "↵", escape: "Esc", esc: "Esc", tab: "Tab", arrowup: "↑", arrowdown: "↓", arrowleft: "←", arrowright: "→" }[p.toLowerCase()];
+  const named = { space: t("key.space"), enter: "↵", escape: "Esc", esc: "Esc", tab: "Tab", arrowup: "↑", arrowdown: "↓", arrowleft: "←", arrowright: "→" }[p.toLowerCase()];
   if (named) return named;
   const g = glyph(p);
   return g === p ? p.toUpperCase() : g;
@@ -70,12 +77,12 @@ function orderedParts(accelerator) {
 }
 
 function kbdHtml(accelerator) {
-  if (!accelerator) return `<span class="note">sem atalho</span>`;
+  if (!accelerator) return `<span class="note">${t("hotkey.none")}</span>`;
   return orderedParts(accelerator).map((p) => `<span class="kbd">${escapeHtml(keyLabel(p))}</span>`).join("");
 }
 
 function hotkeyText(accelerator) {
-  if (!accelerator) return "sem atalho";
+  if (!accelerator) return t("hotkey.none");
   return orderedParts(accelerator).map(keyLabel).join(IS_MAC ? "" : "+");
 }
 
@@ -164,7 +171,7 @@ function renderHotkeys() {
     $('[data-role="keys"]', el).innerHTML = kbdHtml(config[key]);
     $('[data-role="keys"]', el).hidden = false;
     $('[data-role="capture"]', el).hidden = true;
-    $('[data-role="edit"]', el).textContent = "Editar";
+    $('[data-role="edit"]', el).textContent = t("hotkey.edit");
   });
 }
 
@@ -174,8 +181,8 @@ function startCapture(entry) {
   $('[data-role="keys"]', entry.el).hidden = true;
   const cap = $('[data-role="capture"]', entry.el);
   cap.hidden = false;
-  cap.textContent = "Digite o atalho";
-  $('[data-role="edit"]', entry.el).textContent = "Salvar";
+  cap.textContent = t("hotkey.type");
+  $('[data-role="edit"]', entry.el).textContent = t("hotkey.save");
   clearHeldModifiers();
   api.setRecordingHotkey(true);
 }
@@ -222,16 +229,15 @@ document.addEventListener("keyup", (event) => {
 // Home: status, today's numbers, recent transcriptions
 // ─────────────────────────────────────────────────────────────────
 function renderHome() {
-  const verb = config.triggerMode === "hold" ? "Segure" : "Toque";
-  let sub = `${verb} ${kbdHtml(config.hotkey)} para ditar`;
+  let sub = t(config.triggerMode === "hold" ? "home.sub.hold" : "home.sub.toggle", { keys: kbdHtml(config.hotkey) });
   if (config.translateEnabled && config.translateHotkey) {
-    sub += `, ${kbdHtml(config.translateHotkey)} para traduzir para ${LANGUAGE_NAME[config.targetLanguage] || "inglês"}`;
+    sub += t("home.sub.translate", { keys: kbdHtml(config.translateHotkey), language: escapeHtml(languageName(config.targetLanguage)) });
   }
   $("#home-sub").innerHTML = `${sub}.`;
-  $("#paste-last-hint").textContent = `${hotkeyText(appInfo.pasteLastHotkey || "CommandOrControl+Alt+V")} cola a última em qualquer app`;
+  $("#paste-last-hint").textContent = t("home.pasteLast", { keys: hotkeyText(appInfo.pasteLastHotkey || "CommandOrControl+Alt+V") });
   $("#history-note").textContent = config.historyDays === 0
-    ? "O histórico não é guardado: estas linhas somem quando o app fecha."
-    : `Guardado por ${config.historyDays} dias neste computador. Só o texto, nunca o áudio.`;
+    ? t("home.historyOff")
+    : t("home.historyKept", { days: formatInt(config.historyDays) });
 }
 
 async function refreshHistory() {
@@ -247,23 +253,23 @@ async function refreshHistory() {
   const list = $("#history-list");
   const recent = historyCache.slice(0, 5);
   if (!recent.length) {
-    list.innerHTML = `<p class="empty">Nenhum ditado ainda. Segure o atalho e fale.</p>`;
+    list.innerHTML = `<p class="empty">${t("home.empty")}</p>`;
     return;
   }
   list.innerHTML = recent.map((e, i) => {
-    const time = new Date(e.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    const time = formatTime(new Date(e.at));
     if (e.kind === "nothing") {
-      return `<div class="hrow" data-i="${i}"><span class="ht">${time}</span><span class="hx muted">Nada ouvido · nada colado</span><span class="ha">—</span></div>`;
+      return `<div class="hrow" data-i="${i}"><span class="ht">${time}</span><span class="hx muted">${t("home.nothing")}</span><span class="ha">—</span></div>`;
     }
-    const original = e.original && e.original !== e.text ? `<small>Original: ${escapeHtml(e.original)}</small>` : "";
-    return `<button type="button" class="hrow" data-i="${i}"><span class="ht">${time}</span><span class="hx">${escapeHtml(e.text)}${original}</span><span class="ha">${KIND_LABEL[e.kind] || ""}</span></button>`;
+    const original = e.original && e.original !== e.text ? `<small>${t("home.original", { text: escapeHtml(e.original) })}</small>` : "";
+    return `<button type="button" class="hrow" data-i="${i}"><span class="ht">${time}</span><span class="hx">${escapeHtml(e.text)}${original}</span><span class="ha">${kindLabel(e.kind)}</span></button>`;
   }).join("");
   $$("button.hrow", list).forEach((row) => row.addEventListener("click", async () => {
     const entry = recent[Number(row.dataset.i)];
     await api.copyToClipboard(entry.text);
     row.classList.add("copied");
-    $(".ha", row).textContent = "Copiado";
-    setTimeout(() => { row.classList.remove("copied"); $(".ha", row).textContent = KIND_LABEL[entry.kind] || ""; }, 1400);
+    $(".ha", row).textContent = t("copied");
+    setTimeout(() => { row.classList.remove("copied"); $(".ha", row).textContent = kindLabel(entry.kind); }, 1400);
   }));
 }
 
@@ -301,7 +307,7 @@ async function loadMicrophones() {
   try { mics = await getAvailableMicrophones(); } catch (e) { log(`microphones: ${e}`, "error"); }
   mics = mics.filter((m) => m.deviceId !== "default" && m.deviceId !== "communications");
   const select = $("#mic-select");
-  select.innerHTML = `<option value="">Padrão do sistema</option>` +
+  select.innerHTML = `<option value="">${t("dict.mic.default")}</option>` +
     mics.map((m) => `<option value="${escapeHtml(m.deviceId)}">${escapeHtml(m.label)}</option>`).join("");
   select.value = mics.some((m) => m.deviceId === config.selectedMicrophone) ? config.selectedMicrophone : "";
   api.setMicrophones(mics.map((m) => ({ deviceId: m.deviceId, label: m.label })));
@@ -366,11 +372,11 @@ async function renderModels() {
     const time = times?.length ? formatSeconds(times.reduce((a, b) => a + b, 0) / times.length) : "—";
     const active = m.name === config.model;
     let action;
-    if (active) action = `<span class="tag on">Em uso</span>`;
-    else if (downloading === m.name) action = `<button class="lnk" type="button" data-cancel="${m.name}">Cancelar</button>`;
-    else if (m.exists) action = `<button class="lnk" type="button" data-use="${m.name}">Usar</button>`;
-    else action = `<button class="lnk" type="button" data-download="${m.name}" ${downloading ? "disabled" : ""}>Baixar</button>`;
-    const note = MODEL_NOTE[m.name] ? `<small>${MODEL_NOTE[m.name]}</small>` : "";
+    if (active) action = `<span class="tag on">${t("model.inUse")}</span>`;
+    else if (downloading === m.name) action = `<button class="lnk" type="button" data-cancel="${m.name}">${t("model.cancel")}</button>`;
+    else if (m.exists) action = `<button class="lnk" type="button" data-use="${m.name}">${t("model.use")}</button>`;
+    else action = `<button class="lnk" type="button" data-download="${m.name}" ${downloading ? "disabled" : ""}>${t("model.download")}</button>`;
+    const note = MODEL_NOTE[m.name] ? `<small>${t(MODEL_NOTE[m.name])}</small>` : "";
     return `<div class="mr${active ? " on" : ""}"><span><b>${m.name}</b>${note}</span><span>${size}</span><span>${time}</span>${action}</div>`;
   }).join("");
   $$("[data-use]").forEach((b) => b.addEventListener("click", () => save("model", b.dataset.use)));
@@ -382,13 +388,13 @@ async function downloadModel(name) {
   downloading = name;
   $("#download-progress").hidden = false;
   $("#download-bar").style.width = "0%";
-  $("#download-text").textContent = `Baixando ${name}…`;
+  $("#download-text").textContent = t("model.downloading", { model: name });
   renderModels();
   try {
     await api.downloadModel(name);
-    $("#download-text").textContent = `${name} baixado. Clique em "Usar" para trocar.`;
+    $("#download-text").textContent = t("model.downloaded", { model: name });
   } catch (err) {
-    $("#download-text").textContent = String(err).includes("cancel") ? "Download cancelado." : `Falha ao baixar: ${err}`;
+    $("#download-text").textContent = String(err).includes("cancel") ? t("model.cancelled") : t("model.failed", { error: err });
   } finally {
     downloading = null;
     $("#download-progress").hidden = true;
@@ -398,7 +404,7 @@ async function downloadModel(name) {
 
 api.onModelDownloadProgress((d) => {
   $("#download-bar").style.width = `${d.progress}%`;
-  $("#download-text").textContent = `Baixando ${d.model} · ${Math.round(d.progress)}% de ${formatBytes(d.total)}`;
+  $("#download-text").textContent = t("model.progress", { model: d.model, percent: formatInt(Math.round(d.progress)), total: formatBytes(d.total) });
 });
 
 // ─────────────────────────────────────────────────────────────────
@@ -408,15 +414,15 @@ const glossaryTerms = () => (config.refinementGlossary || "").split(/[\n,;]/).ma
 
 function renderGlossary() {
   const terms = glossaryTerms();
-  $("#term-list").innerHTML = terms.map((t, i) =>
-    `<span class="term">${escapeHtml(t)}<button type="button" data-remove="${i}" aria-label="Remover ${escapeHtml(t)}">×</button></span>`).join("");
+  $("#term-list").innerHTML = terms.map((term, i) =>
+    `<span class="term">${escapeHtml(term)}<button type="button" data-remove="${i}" aria-label="${t("gl.remove", { term: escapeHtml(term) })}">×</button></span>`).join("");
   $$("[data-remove]").forEach((b) => b.addEventListener("click", () => {
     const next = glossaryTerms().filter((_, i) => i !== Number(b.dataset.remove));
     save("refinementGlossary", next.join("\n"));
   }));
   $("#term-note").textContent = terms.length
-    ? `${terms.length} ${terms.length === 1 ? "palavra" : "palavras"}. Entram no prompt do Whisper e no refinamento.`
-    : "Nenhuma palavra ainda. Nomes próprios e termos técnicos são os que mais ganham.";
+    ? tn("gl.count", terms.length)
+    : t("gl.empty");
 }
 
 $("#term-form").addEventListener("submit", (e) => {
@@ -446,13 +452,13 @@ $("#or-test").addEventListener("click", async () => {
   const button = $("#or-test");
   button.disabled = true;
   status.classList.remove("error");
-  status.textContent = "Testando…";
+  status.textContent = t("ai.testing");
   try {
     const ms = await api.testOpenrouter();
-    status.textContent = `Respondeu em ${formatSeconds(ms)}.`;
+    status.textContent = t("ai.replied", { time: formatSeconds(ms) });
   } catch (err) {
     status.classList.add("error");
-    status.textContent = `Não respondeu: ${err}`;
+    status.textContent = t("ai.noReply", { error: err });
   } finally {
     button.disabled = false;
   }
@@ -475,23 +481,24 @@ const INSTALL = { xdotool: "sudo apt install xdotool", wtype: "sudo apt install 
 function permissionRows(s) {
   const rows = [];
   const mic = {
-    granted: ["LIBERADO", "ok", "O app consegue te ouvir."],
-    denied: ["BLOQUEADO", "no", "Libere o app na lista de microfone do sistema."],
-    not_determined: ["PENDENTE", "no", "O sistema vai perguntar na primeira vez."],
-    unknown: ["LIVRE", "ok", "O sistema não controla o microfone por app."],
+    granted: [t("perm.status.granted"), "ok", t("perm.mic.granted")],
+    denied: [t("perm.status.blocked"), "no", t("perm.mic.denied")],
+    not_determined: [t("perm.status.pending"), "no", t("perm.mic.pending")],
+    unknown: [t("perm.status.free"), "ok", t("perm.mic.unknown")],
   }[s.microphone] || ["—", "ok", ""];
-  rows.push({ title: "Microfone", status: mic[0], cls: mic[1], hint: mic[2], missing: mic[1] === "no" });
+  rows.push({ title: t("perm.microphone"), status: mic[0], cls: mic[1], hint: mic[2], missing: mic[1] === "no" });
+  const paste = t("perm.autoPaste");
   if (s.accessibilityRequired) {
     rows.push(s.accessibility
-      ? { title: "Colagem automática", status: "LIBERADO", cls: "ok", hint: "Acessibilidade ligada." }
-      : { title: "Colagem automática", status: "PENDENTE", cls: "no", hint: "Acessibilidade · ligue a chave do Speech to Text na lista.", missing: true });
+      ? { title: paste, status: t("perm.status.granted"), cls: "ok", hint: t("perm.ax.on") }
+      : { title: paste, status: t("perm.status.pending"), cls: "no", hint: t("perm.ax.off"), missing: true });
   } else if (s.platform === "linux") {
     const session = s.session === "wayland" ? "Wayland" : "X11";
     rows.push(s.missingPasteTool
-      ? { title: "Colagem automática", status: "FALTA", cls: "no", hint: `Sessão ${session} · instale: <span class="cmd">${INSTALL[s.missingPasteTool] || s.missingPasteTool}</span>`, missing: true }
-      : { title: "Colagem automática", status: "PRONTA", cls: "ok", hint: `Sessão ${session}.` });
+      ? { title: paste, status: t("perm.status.missing"), cls: "no", hint: t("perm.linux.missing", { session, command: `<span class="cmd">${INSTALL[s.missingPasteTool] || s.missingPasteTool}</span>` }), missing: true }
+      : { title: paste, status: t("perm.status.ready"), cls: "ok", hint: t("perm.linux.ready", { session }) });
   } else {
-    rows.push({ title: "Colagem automática", status: "LIBERADO", cls: "ok", hint: "Não precisa de permissão neste sistema." });
+    rows.push({ title: paste, status: t("perm.status.granted"), cls: "ok", hint: t("perm.notNeeded") });
   }
   return rows;
 }
@@ -506,8 +513,8 @@ function renderPermissions(s) {
   renderPermissionRows($("#perm-rows"), s);
   renderPermissionRows($("#ob-perms"), s);
   $("#perm-sub").textContent = missing === 0
-    ? "Tudo liberado: o app ouve e cola sem pedir nada."
-    : `${missing === 1 ? "Falta uma" : "Faltam duas"}. Sem elas o app não te ouve ou o texto fica só na área de transferência.`;
+    ? t("perm.sub.ok")
+    : t(missing === 1 ? "perm.sub.one" : "perm.sub.two");
   renderStatusLine(s);
   $("#perm-grant").hidden = missing === 0;
   $("#ob-grant").disabled = missing === 0;
@@ -520,17 +527,21 @@ function renderPermissions(s) {
 // The sidebar's status line: what the app needs, said as a fact (15-app-mac.md).
 function renderStatusLine(s) {
   const mic = !["denied", "not_determined"].includes(s.microphone);
-  const names = s.accessibilityRequired ? [["Microfone", mic], ["Acessibilidade", s.accessibility]] : [["Microfone", mic]];
-  const off = names.filter(([, on]) => !on).map(([name]) => name);
+  const names = s.accessibilityRequired
+    ? [["microphone", mic], ["accessibility", s.accessibility]]
+    : [["microphone", mic]];
+  const off = names.filter(([, on]) => !on).map(([id]) => id);
   const line = $("#status-line");
   line.classList.toggle("off", off.length > 0);
   $("use", line).setAttribute("href", `icons.svg#${off.length ? "lock" : "check"}`);
-  const list = (off.length ? off : names.map(([name]) => name)).join(" e ");
-  const many = (off.length || names.length) > 1;
-  const word = off.length
-    ? (many ? "desligados" : off[0] === "Microfone" ? "desligado" : "desligada")
-    : (many ? "ligados" : "ligado");
-  $("span", line).textContent = `${list} ${word}`;
+  const shown = off.length ? off : names.map(([id]) => id);
+  const list = shown.map((id) => t(`perm.${id}`)).join(t("status.and"));
+  const many = shown.length > 1;
+  // Portuguese agrees in gender: "Acessibilidade desligada", "Microfone desligado".
+  const key = off.length
+    ? (many ? "status.off.other" : off[0] === "accessibility" ? "status.off.oneFeminine" : "status.off.one")
+    : (many ? "status.on.other" : "status.on.one");
+  $("span", line).textContent = t(key, { list });
 }
 $("#status-line").addEventListener("click", () => {
   if ($("#status-line").classList.contains("off")) showPane("permissoes");
@@ -589,23 +600,23 @@ $("#check-updates").addEventListener("click", async () => {
   const button = $("#check-updates");
   button.disabled = true;
   label.classList.remove("error");
-  label.textContent = "Verificando…";
+  label.textContent = t("sys.updates.checking");
   const s = await api.checkForUpdates();
   button.disabled = false;
-  const now = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const now = formatTime(new Date());
   if (s.ready) {
-    label.innerHTML = `Versão ${escapeHtml(s.latest)} baixada · <a href="#" id="install-update">reiniciar e atualizar</a>`;
+    label.innerHTML = t("sys.updates.ready", { version: escapeHtml(s.latest) });
     $("#install-update").addEventListener("click", (e) => {
       e.preventDefault();
       api.installUpdate();
     });
   } else if (s.newer) {
-    label.innerHTML = `Versão ${escapeHtml(s.latest)} disponível · <a href="${escapeHtml(s.url)}" data-external>baixar</a>`;
+    label.innerHTML = t("sys.updates.newer", { version: escapeHtml(s.latest), url: escapeHtml(s.url) });
   } else if (s.error) {
     label.classList.add("error");
-    label.textContent = `Não foi possível verificar: ${s.error}`;
+    label.textContent = t("sys.updates.error", { error: s.error });
   } else {
-    label.textContent = `Você está na mais recente · verificado às ${now}`;
+    label.textContent = t("sys.updates.latest", { time: now });
   }
 });
 
@@ -613,8 +624,8 @@ $("#copy-diagnostics").addEventListener("click", async () => {
   const button = $("#copy-diagnostics");
   const text = await api.getDiagnostics();
   await api.copyToClipboard(text);
-  button.textContent = "Copiado";
-  setTimeout(() => { button.textContent = "Copiar"; }, 1400);
+  button.textContent = t("copied");
+  setTimeout(() => { button.textContent = t("sys.copy"); }, 1400);
 });
 $("#open-logs").addEventListener("click", () => api.openLogFolder());
 
@@ -630,12 +641,11 @@ document.addEventListener("click", (e) => {
 // ─────────────────────────────────────────────────────────────────
 function showStep(n) {
   $$(".ob-step").forEach((s) => { s.hidden = s.dataset.step !== String(n); });
-  $("#ob-step-label").textContent = `${n} de 3`;
+  $("#ob-step-label").textContent = t("ob.stepOf", { n });
   syncLevelMonitor();
   if (n === 1) startPermissionPolling();
   if (n === 3) {
-    const verb = config.triggerMode === "hold" ? "Segure" : "Toque";
-    $("#ob-hotkey-sub").innerHTML = `${verb} ${kbdHtml(config.hotkey)} com o cursor no campo abaixo e fale. ${config.triggerMode === "hold" ? "Solte" : "Toque de novo"} para colar.`;
+    $("#ob-hotkey-sub").innerHTML = t(config.triggerMode === "hold" ? "ob.3.sub.hold" : "ob.3.sub.toggle", { keys: kbdHtml(config.hotkey) });
     $("#ob-field").focus();
   }
 }
@@ -661,17 +671,17 @@ $("#ob-record").addEventListener("click", async () => {
   const result = $("#ob-result");
   button.disabled = true;
   result.className = "ob-result muted";
-  result.textContent = "Ouvindo… fale agora.";
+  result.textContent = t("ob.listening");
   const ok = await startAudioRecording();
   if (!ok) {
     result.className = "ob-result error";
-    result.textContent = "O microfone não abriu. Volte e libere a permissão.";
+    result.textContent = t("ob.micFailed");
     button.disabled = false;
     return;
   }
   await new Promise((r) => setTimeout(r, 4000));
   const audio = await stopAudioRecording(false);
-  result.textContent = "Transcrevendo…";
+  result.textContent = t("ob.transcribing");
   try {
     const r = await api.sendAudioForTranscription(audio || new ArrayBuffer(0), "test");
     if (r.text && !r.isNoise) {
@@ -679,14 +689,14 @@ $("#ob-record").addEventListener("click", async () => {
       result.textContent = `"${r.text}"`;
     } else {
       result.className = "ob-result error";
-      result.textContent = "Nada ouvido. Confira se o microfone certo está escolhido e fale mais perto.";
+      result.textContent = t("ob.nothingHeard");
     }
   } catch (err) {
     result.className = "ob-result error";
-    result.textContent = `A transcrição falhou: ${err}`;
+    result.textContent = t("ob.failed", { error: err });
   } finally {
     button.disabled = false;
-    button.textContent = "Gravar de novo";
+    button.textContent = t("ob.recordAgain");
   }
 });
 
@@ -695,10 +705,10 @@ api.onTranscription((data) => {
   const result = $("#ob-hotkey-result");
   if (data.text && !data.isNoise) {
     result.className = "ob-result";
-    result.textContent = "Colado. Está tudo pronto.";
+    result.textContent = t("ob.pasted");
   } else {
     result.className = "ob-result muted";
-    result.textContent = "Nada ouvido. Tente de novo, falando enquanto segura o atalho.";
+    result.textContent = t("ob.tryAgain");
   }
 });
 
@@ -709,7 +719,7 @@ async function init() {
   appInfo = await api.getAppInfo();
   document.body.dataset.platform = appInfo.platform;
   $$("[data-platform]").forEach((el) => { el.hidden = el.dataset.platform !== appInfo.platform; });
-  $("#nav-foot").textContent = `Versão ${appInfo.version} · por Ciro Cesar Maciel`;
+  $("#nav-foot").textContent = t("nav.foot", { version: appInfo.version });
 
   applyConfig(await api.getConfig());
   autolaunch.setAttribute("aria-checked", String(await api.getAutoLaunch()));

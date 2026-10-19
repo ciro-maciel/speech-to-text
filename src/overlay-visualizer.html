@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,7 +52,10 @@
   <div id="hud" class="hud" role="status" aria-live="polite" hidden></div>
 
   <script src="bridge.js"></script>
-  <script>
+  <script type="module">
+    import { t, tn, applyI18n } from "./i18n.js";
+    applyI18n();
+
     // States: listening | transcribing | refining | translating | pasted |
     // nothing | nopaste | error | cancelled. "Microphone silent" is derived
     // here: the renderer sends level -1 for chunks of pure digital silence.
@@ -80,13 +83,13 @@
     }
 
     function listeningMeta() {
-      if (payload.locked) return "mãos livres";
+      if (payload.locked) return t("hud.handsFree");
       return payload.showTimer === false ? "" : fmt(Date.now() - startedAt);
     }
 
     function renderListening(silent) {
       hud.className = "hud" + (silent ? " muted" : "");
-      const label = silent ? "Microfone sem sinal" : (payload.mode === "translate" ? "Ouvindo · traduzir" : "Ouvindo");
+      const label = silent ? t("hud.micSilent") : t(payload.mode === "translate" ? "hud.listeningTranslate" : "hud.listening");
       hud.innerHTML = `<span class="st">${label}</span><span class="bars" aria-hidden="true">${"<i></i>".repeat(BARS)}</span><span class="meta" id="clock">${listeningMeta()}</span>`;
       barEls = [...hud.querySelectorAll(".bars i")];
     }
@@ -94,7 +97,7 @@
     function render() {
       clearInterval(clockTimer);
       hud.hidden = false;
-      const words = payload.words === 1 ? "1 palavra" : `${payload.words ?? 0} palavras`;
+      const words = tn("hud.words", payload.words ?? 0);
       switch (state) {
         case "listening":
           deadSince = 0;
@@ -106,38 +109,38 @@
           return;
         case "transcribing":
           hud.className = "hud";
-          hud.innerHTML = `<span class="st">Transcrevendo</span><span class="track" aria-hidden="true"></span><span class="meta">no computador</span>`;
+          hud.innerHTML = `<span class="st">${t("hud.transcribing")}</span><span class="track" aria-hidden="true"></span><span class="meta">${t("hud.onDevice")}</span>`;
           break;
         case "refining":
           hud.className = "hud";
-          hud.innerHTML = `<span class="st">Refinando</span><span class="track" aria-hidden="true"></span><span class="meta">${esc(payload.provider || "IA")}</span>`;
+          hud.innerHTML = `<span class="st">${t("hud.refining")}</span><span class="track" aria-hidden="true"></span><span class="meta">${esc(payload.provider || t("hud.ai"))}</span>`;
           break;
         case "translating":
           hud.className = "hud";
-          hud.innerHTML = `<span class="st">Traduzindo → ${LANG[payload.target] || "EN"}</span><span class="track" aria-hidden="true"></span><span class="meta">OpenRouter</span>`;
+          hud.innerHTML = `<span class="st">${t("hud.translating", { lang: LANG[payload.target] || "EN" })}</span><span class="track" aria-hidden="true"></span><span class="meta">OpenRouter</span>`;
           break;
         case "pasted":
           hud.className = "hud";
           hud.innerHTML = payload.showText === false
-            ? `<span class="st">Colado</span><span class="meta">${words}</span>`
-            : `<span class="st">Colado</span><span class="txt">${esc(payload.text)}</span><span class="meta">${words}</span>`;
+            ? `<span class="st">${t("hud.pasted")}</span><span class="meta">${words}</span>`
+            : `<span class="st">${t("hud.pasted")}</span><span class="txt">${esc(payload.text)}</span><span class="meta">${words}</span>`;
           break;
         case "nothing":
           hud.className = "hud muted";
-          hud.innerHTML = `<span class="st">Nada ouvido</span><span class="meta">nada colado</span>`;
+          hud.innerHTML = `<span class="st">${t("hud.nothingHeard")}</span><span class="meta">${t("hud.nothingPasted")}</span>`;
           break;
         case "cancelled":
           hud.className = "hud muted";
-          hud.innerHTML = `<span class="st">Cancelado</span><span class="meta">nada colado</span>`;
+          hud.innerHTML = `<span class="st">${t("hud.cancelled")}</span><span class="meta">${t("hud.nothingPasted")}</span>`;
           break;
         case "nopaste":
           hud.className = "hud";
-          hud.innerHTML = `<span class="st">Copiado · ${navigator.platform.includes("Mac") ? "⌘V" : "Ctrl+V"} para colar</span><button class="act" id="grant" type="button">Liberar</button>`;
+          hud.innerHTML = `<span class="st">${t("hud.copied", { keys: navigator.platform.includes("Mac") ? "⌘V" : "Ctrl+V" })}</span><button class="act" id="grant" type="button">${t("hud.allow")}</button>`;
           document.getElementById("grant").addEventListener("click", () => window.overlayApi.requestPermissions());
           break;
         case "error":
           hud.className = "hud err";
-          hud.innerHTML = `<span class="st">Erro</span><span class="meta">${esc(payload.message || "algo falhou")}</span>`;
+          hud.innerHTML = `<span class="st">${t("hud.error")}</span><span class="meta">${esc(payload.message || t("hud.somethingFailed"))}</span>`;
           break;
         default:
           hud.hidden = true;

@@ -112,11 +112,19 @@ pub async fn refine(
 
     let api_key_owned = sanitize_api_key(api_key);
     if api_key_owned.is_empty() {
-        return Err("API key vazia — configure em Configurações → Refinamento".to_string());
+        return Err(crate::i18n::tr(
+            "Empty API key — set it in Settings → AI",
+            "API key vazia — configure em Configurações → Refinamento",
+        )
+        .to_string());
     }
     let model_owned = sanitize_model(model);
     if model_owned.is_empty() {
-        return Err("Modelo OpenRouter vazio — ex: google/gemini-flash-latest".to_string());
+        return Err(crate::i18n::tr(
+            "Empty OpenRouter model — e.g. google/gemini-flash-latest",
+            "Modelo OpenRouter vazio — ex: google/gemini-flash-latest",
+        )
+        .to_string());
     }
     let model = model_owned.as_str();
     let api_key = api_key_owned.as_str();

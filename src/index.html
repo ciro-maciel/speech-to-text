@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,41 +14,41 @@
     <!-- ─────────────  FIRST RUN  ───────────── -->
     <section id="onboarding" class="onboarding" hidden>
       <div class="ob-inner">
-        <p class="label">Primeira abertura · <span id="ob-step-label">1 de 3</span></p>
+        <p class="label"><span data-i18n="ob.firstRun">First launch</span> · <span id="ob-step-label">1 of 3</span></p>
 
         <div class="ob-step" data-step="1">
-          <h1 class="ob-title">Duas permissões e pronto.</h1>
-          <p class="sub">O microfone para te ouvir; a colagem para pôr o texto onde está o cursor.</p>
+          <h1 class="ob-title" data-i18n="ob.1.title"></h1>
+          <p class="sub" data-i18n="ob.1.sub"></p>
           <div class="rows" id="ob-perms"></div>
           <div class="ob-actions">
-            <button class="btn" id="ob-grant" type="button">Liberar permissões</button>
-            <button class="btn-ghost" id="ob-next-1" type="button">Continuar</button>
+            <button class="btn" id="ob-grant" type="button" data-i18n="ob.grant"></button>
+            <button class="btn-ghost" id="ob-next-1" type="button" data-i18n="ob.continue"></button>
           </div>
-          <p class="note">A lista se atualiza sozinha enquanto os ajustes do sistema estão abertos.</p>
+          <p class="note" data-i18n="perm.liveNote"></p>
         </div>
 
         <div class="ob-step" data-step="2" hidden>
-          <h1 class="ob-title">Fale uma frase.</h1>
-          <p class="sub">Testa o microfone e o modelo juntos. Nada é colado nem enviado para a IA.</p>
+          <h1 class="ob-title" data-i18n="ob.2.title"></h1>
+          <p class="sub" data-i18n="ob.2.sub"></p>
           <div class="ob-test">
             <span class="meter" id="ob-meter" aria-hidden="true"></span>
-            <button class="btn" id="ob-record" type="button">Gravar 4 segundos</button>
+            <button class="btn" id="ob-record" type="button" data-i18n="ob.record"></button>
           </div>
           <p class="ob-result" id="ob-result" aria-live="polite"></p>
           <div class="ob-actions">
-            <button class="btn-ghost" id="ob-back-2" type="button">Voltar</button>
-            <button class="btn-ghost" id="ob-next-2" type="button">Continuar</button>
+            <button class="btn-ghost" id="ob-back-2" type="button" data-i18n="ob.back"></button>
+            <button class="btn-ghost" id="ob-next-2" type="button" data-i18n="ob.continue"></button>
           </div>
         </div>
 
         <div class="ob-step" data-step="3" hidden>
-          <h1 class="ob-title">Agora com o atalho.</h1>
+          <h1 class="ob-title" data-i18n="ob.3.title"></h1>
           <p class="sub" id="ob-hotkey-sub"></p>
-          <textarea id="ob-field" class="ob-field" rows="3" placeholder="Clique aqui, segure o atalho e fale."></textarea>
+          <textarea id="ob-field" class="ob-field" rows="3" data-i18n-placeholder="ob.3.field"></textarea>
           <p class="ob-result" id="ob-hotkey-result" aria-live="polite"></p>
           <div class="ob-actions">
-            <button class="btn-ghost" id="ob-back-3" type="button">Voltar</button>
-            <button class="btn" id="ob-finish" type="button">Concluir</button>
+            <button class="btn-ghost" id="ob-back-3" type="button" data-i18n="ob.back"></button>
+            <button class="btn" id="ob-finish" type="button" data-i18n="ob.finish"></button>
           </div>
         </div>
       </div>
@@ -59,23 +59,23 @@
       <aside class="side">
         <div class="drag" data-tauri-drag-region></div>
         <p class="word" data-tauri-drag-region>Speech to Text</p>
-        <nav class="groups" aria-label="Seções">
+        <nav class="groups" data-i18n-aria="nav.sections">
           <div class="group">
-            <p class="label">Ditado</p>
-            <button type="button" data-pane="inicio" aria-pressed="true"><svg class="i"><use href="icons.svg#home"/></svg>Início</button>
-            <button type="button" data-pane="ditado"><svg class="i"><use href="icons.svg#keyboard"/></svg>Atalho e microfone</button>
-            <button type="button" data-pane="transcricao"><svg class="i"><use href="icons.svg#cpu"/></svg>Transcrição</button>
-            <button type="button" data-pane="glossario"><svg class="i"><use href="icons.svg#vocabulary"/></svg>Glossário</button>
+            <p class="label" data-i18n="nav.dictation"></p>
+            <button type="button" data-pane="inicio" aria-pressed="true"><svg class="i"><use href="icons.svg#home"/></svg><span data-i18n="nav.home"></span></button>
+            <button type="button" data-pane="ditado"><svg class="i"><use href="icons.svg#keyboard"/></svg><span data-i18n="nav.shortcut"></span></button>
+            <button type="button" data-pane="transcricao"><svg class="i"><use href="icons.svg#cpu"/></svg><span data-i18n="nav.transcription"></span></button>
+            <button type="button" data-pane="glossario"><svg class="i"><use href="icons.svg#vocabulary"/></svg><span data-i18n="nav.glossary"></span></button>
           </div>
           <div class="group">
-            <p class="label">Depois de ditar</p>
-            <button type="button" data-pane="ia"><svg class="i"><use href="icons.svg#sparkles"/></svg>Inteligência</button>
-            <button type="button" data-pane="overlay"><svg class="i"><use href="icons.svg#layout-navbar"/></svg>Overlay</button>
+            <p class="label" data-i18n="nav.after"></p>
+            <button type="button" data-pane="ia"><svg class="i"><use href="icons.svg#sparkles"/></svg><span data-i18n="nav.ai"></span></button>
+            <button type="button" data-pane="overlay"><svg class="i"><use href="icons.svg#layout-navbar"/></svg><span data-i18n="nav.overlay"></span></button>
           </div>
           <div class="group">
-            <p class="label">Ajustes</p>
-            <button type="button" data-pane="permissoes"><svg class="i"><use href="icons.svg#lock"/></svg>Permissões<span class="count" id="perm-flag" hidden></span></button>
-            <button type="button" data-pane="sistema"><svg class="i"><use href="icons.svg#settings"/></svg>Sistema</button>
+            <p class="label" data-i18n="nav.settings"></p>
+            <button type="button" data-pane="permissoes"><svg class="i"><use href="icons.svg#lock"/></svg><span data-i18n="nav.permissions"></span><span class="count" id="perm-flag" hidden></span></button>
+            <button type="button" data-pane="sistema"><svg class="i"><use href="icons.svg#settings"/></svg><span data-i18n="nav.system"></span></button>
           </div>
         </nav>
         <footer class="foot">
@@ -90,17 +90,17 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Início</h1>
+              <h1 data-i18n="nav.home"></h1>
               <p class="sub" id="home-sub"></p>
             </div>
           </header>
           <div class="stats">
-            <div><b id="stat-count">0</b><span>ditados hoje</span></div>
-            <div><b id="stat-words">0</b><span>palavras hoje</span></div>
-            <div><b id="stat-latency">—</b><span>do fim da fala ao texto</span></div>
+            <div><b id="stat-count">0</b><span data-i18n="home.dictationsToday"></span></div>
+            <div><b id="stat-words">0</b><span data-i18n="home.wordsToday"></span></div>
+            <div><b id="stat-latency">—</b><span data-i18n="home.latency"></span></div>
           </div>
           <div class="between">
-            <p class="label">Últimas transcrições · clique copia</p>
+            <p class="label" data-i18n="home.recent"></p>
             <span class="note" id="paste-last-hint"></span>
           </div>
           <div class="hist" id="history-list"></div>
@@ -112,56 +112,56 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Atalho e microfone</h1>
-              <p class="sub">Como você começa e termina um ditado, e qual microfone ouve.</p>
+              <h1 data-i18n="nav.shortcut"></h1>
+              <p class="sub" data-i18n="dict.sub"></p>
             </div>
           </header>
           <div class="rows">
             <div class="row">
-              <span>Atalho de ditado</span>
+              <span data-i18n="dict.hotkey"></span>
               <span class="ctl hotkey" id="hk-transcribe">
                 <span class="keys" data-role="keys"></span>
-                <span class="capture" data-role="capture" hidden>Digite o atalho</span>
-                <button class="lnk" type="button" data-role="edit">Editar</button>
+                <span class="capture" data-role="capture" hidden data-i18n="hotkey.type"></span>
+                <button class="lnk" type="button" data-role="edit" data-i18n="hotkey.edit"></button>
               </span>
             </div>
             <div class="row">
-              <span>Modo<small>Segurar dita enquanto a tecla está pressionada. Toque duplo trava até o próximo toque.</small></span>
+              <span><span data-i18n="dict.mode"></span><small data-i18n="dict.mode.hint"></small></span>
               <span class="seg" data-setting="triggerMode" role="group">
-                <button type="button" data-value="hold">Segurar</button>
-                <button type="button" data-value="toggle">Tocar</button>
+                <button type="button" data-value="hold" data-i18n="dict.mode.hold"></button>
+                <button type="button" data-value="toggle" data-i18n="dict.mode.toggle"></button>
               </span>
             </div>
             <div class="row">
-              <span>Esc cancela o ditado<small>Descarta o áudio sem colar nada.</small></span>
-              <button class="sw" type="button" role="switch" data-setting="escCancels" aria-label="Esc cancela o ditado"></button>
+              <span><span data-i18n="dict.esc"></span><small data-i18n="dict.esc.hint"></small></span>
+              <button class="sw" type="button" role="switch" data-setting="escCancels" data-i18n-aria="dict.esc"></button>
             </div>
             <div class="row">
-              <span>Microfone<small id="mic-hint">O medidor segue a sua voz.</small></span>
+              <span><span data-i18n="dict.mic"></span><small id="mic-hint" data-i18n="dict.mic.hint"></small></span>
               <span class="ctl">
                 <span class="meter" id="mic-meter" aria-hidden="true"></span>
-                <select id="mic-select" class="sel" aria-label="Microfone"></select>
+                <select id="mic-select" class="sel" data-i18n-aria="dict.mic"></select>
               </span>
             </div>
             <div class="row">
-              <span>Idioma falado</span>
-              <select class="sel" data-setting="language" aria-label="Idioma falado">
-                <option value="pt">Português</option>
-                <option value="en">Inglês</option>
-                <option value="es">Espanhol</option>
-                <option value="fr">Francês</option>
-                <option value="de">Alemão</option>
-                <option value="it">Italiano</option>
-                <option value="auto">Detectar sozinho</option>
+              <span data-i18n="dict.language"></span>
+              <select class="sel" data-setting="language" data-i18n-aria="dict.language">
+                <option value="pt" data-i18n="lang.pt"></option>
+                <option value="en" data-i18n="lang.en"></option>
+                <option value="es" data-i18n="lang.es"></option>
+                <option value="fr" data-i18n="lang.fr"></option>
+                <option value="de" data-i18n="lang.de"></option>
+                <option value="it" data-i18n="lang.it"></option>
+                <option value="auto" data-i18n="dict.language.auto"></option>
               </select>
             </div>
             <div class="row">
-              <span>Som ao começar e terminar</span>
-              <button class="sw" type="button" role="switch" data-setting="sounds" aria-label="Som ao começar e terminar"></button>
+              <span data-i18n="dict.sounds"></span>
+              <button class="sw" type="button" role="switch" data-setting="sounds" data-i18n-aria="dict.sounds"></button>
             </div>
             <div class="row" data-platform="macos">
-              <span>Silenciar o som do Mac enquanto dita<small>Volta ao normal quando o ditado termina.</small></span>
-              <button class="sw" type="button" role="switch" data-setting="muteWhileDictating" aria-label="Silenciar o som enquanto dita"></button>
+              <span><span data-i18n="dict.mute"></span><small data-i18n="dict.mute.hint"></small></span>
+              <button class="sw" type="button" role="switch" data-setting="muteWhileDictating" data-i18n-aria="dict.mute.aria"></button>
             </div>
           </div>
         </section>
@@ -171,27 +171,27 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Transcrição</h1>
-              <p class="sub">Roda no seu computador: o áudio nunca sai da máquina nesta etapa.</p>
+              <h1 data-i18n="nav.transcription"></h1>
+              <p class="sub" data-i18n="tx.sub"></p>
             </div>
           </header>
           <div class="models">
-            <div class="mh"><span>Modelo</span><span>Tamanho</span><span>Tempo aqui</span><span></span></div>
+            <div class="mh"><span data-i18n="tx.model"></span><span data-i18n="tx.size"></span><span data-i18n="tx.timeHere"></span><span></span></div>
             <div id="model-list"></div>
           </div>
           <div class="progress" id="download-progress" hidden><span id="download-bar"></span></div>
           <p class="note" id="download-text"></p>
           <div class="rows">
             <div class="row">
-              <span>Ignorar silêncio e ruído<small>Detector de voz: um toque sem fala não cola nada.</small></span>
-              <button class="sw" type="button" role="switch" data-setting="voiceDetection" aria-label="Ignorar silêncio e ruído"></button>
+              <span><span data-i18n="tx.vad"></span><small data-i18n="tx.vad.hint"></small></span>
+              <button class="sw" type="button" role="switch" data-setting="voiceDetection" data-i18n-aria="tx.vad"></button>
             </div>
             <div class="row">
-              <span>Manter o modelo carregado<small>Ocupa memória, mas o ditado sai sem espera.</small></span>
-              <button class="sw" type="button" role="switch" data-setting="keepModelLoaded" aria-label="Manter o modelo carregado"></button>
+              <span><span data-i18n="tx.keepLoaded"></span><small data-i18n="tx.keepLoaded.hint"></small></span>
+              <button class="sw" type="button" role="switch" data-setting="keepModelLoaded" data-i18n-aria="tx.keepLoaded"></button>
             </div>
           </div>
-          <p class="note">"Tempo aqui" é a média dos seus ditados com cada modelo, do fim da fala ao texto pronto.</p>
+          <p class="note" data-i18n="tx.timeNote"></p>
         </section>
 
         <!-- GLOSSÁRIO -->
@@ -199,13 +199,13 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Glossário</h1>
-              <p class="sub">Nomes, produtos e jargão que o app deve acertar. Guiam a transcrição e o refinamento.</p>
+              <h1 data-i18n="nav.glossary"></h1>
+              <p class="sub" data-i18n="gl.sub"></p>
             </div>
           </header>
           <form class="add" id="term-form">
-            <input class="inp" id="term-input" type="text" placeholder="Adicionar palavra…" autocomplete="off" spellcheck="false" />
-            <button class="btn-sm" type="submit">Adicionar</button>
+            <input class="inp" id="term-input" type="text" data-i18n-placeholder="gl.placeholder" autocomplete="off" spellcheck="false" />
+            <button class="btn-sm" type="submit" data-i18n="gl.add"></button>
           </form>
           <div class="terms" id="term-list"></div>
           <p class="note" id="term-note"></p>
@@ -216,65 +216,65 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Inteligência</h1>
-              <p class="sub">Refinar e traduzir, depois da transcrição. Nessas etapas o texto sai do computador e vai para o provedor abaixo.</p>
+              <h1 data-i18n="nav.ai"></h1>
+              <p class="sub" data-i18n="ai.sub"></p>
             </div>
           </header>
           <div class="rows">
             <div class="row">
-              <span>Refinar transcrição<small>Corrige palavras, tira muletas e pontua.</small></span>
-              <button class="sw" type="button" role="switch" data-setting="refinementEnabled" aria-label="Refinar transcrição"></button>
+              <span><span data-i18n="ai.refine"></span><small data-i18n="ai.refine.hint"></small></span>
+              <button class="sw" type="button" role="switch" data-setting="refinementEnabled" data-i18n-aria="ai.refine"></button>
             </div>
             <div class="row">
-              <span>Intensidade<small>Leve mantém a sua frase; reescrever pode reorganizá-la.</small></span>
+              <span><span data-i18n="ai.level"></span><small data-i18n="ai.level.hint"></small></span>
               <span class="seg" data-setting="refinementLevel" role="group">
-                <button type="button" data-value="light">Leve</button>
-                <button type="button" data-value="rewrite">Reescrever</button>
+                <button type="button" data-value="light" data-i18n="ai.level.light"></button>
+                <button type="button" data-value="rewrite" data-i18n="ai.level.rewrite"></button>
               </span>
             </div>
             <div class="row">
-              <span>Traduzir com atalho</span>
-              <button class="sw" type="button" role="switch" data-setting="translateEnabled" aria-label="Traduzir com atalho"></button>
+              <span data-i18n="ai.translate"></span>
+              <button class="sw" type="button" role="switch" data-setting="translateEnabled" data-i18n-aria="ai.translate"></button>
             </div>
             <div class="row">
-              <span>Atalho de tradução</span>
+              <span data-i18n="ai.translateHotkey"></span>
               <span class="ctl hotkey" id="hk-translate">
                 <span class="keys" data-role="keys"></span>
-                <span class="capture" data-role="capture" hidden>Digite o atalho</span>
-                <button class="lnk" type="button" data-role="edit">Editar</button>
+                <span class="capture" data-role="capture" hidden data-i18n="hotkey.type"></span>
+                <button class="lnk" type="button" data-role="edit" data-i18n="hotkey.edit"></button>
               </span>
             </div>
             <div class="row">
-              <span>Traduzir para</span>
-              <select class="sel" data-setting="targetLanguage" aria-label="Traduzir para">
-                <option value="en">Inglês</option>
-                <option value="pt">Português</option>
-                <option value="es">Espanhol</option>
-                <option value="fr">Francês</option>
-                <option value="de">Alemão</option>
-                <option value="it">Italiano</option>
-                <option value="ja">Japonês</option>
-                <option value="ko">Coreano</option>
-                <option value="zh">Chinês</option>
-                <option value="ru">Russo</option>
+              <span data-i18n="ai.target"></span>
+              <select class="sel" data-setting="targetLanguage" data-i18n-aria="ai.target">
+                <option value="en" data-i18n="lang.en"></option>
+                <option value="pt" data-i18n="lang.pt"></option>
+                <option value="es" data-i18n="lang.es"></option>
+                <option value="fr" data-i18n="lang.fr"></option>
+                <option value="de" data-i18n="lang.de"></option>
+                <option value="it" data-i18n="lang.it"></option>
+                <option value="ja" data-i18n="lang.ja"></option>
+                <option value="ko" data-i18n="lang.ko"></option>
+                <option value="zh" data-i18n="lang.zh"></option>
+                <option value="ru" data-i18n="lang.ru"></option>
               </select>
             </div>
           </div>
-          <p class="label block">Provedor · OpenRouter</p>
+          <p class="label block" data-i18n="ai.provider"></p>
           <div class="rows">
             <div class="row">
-              <label for="or-model">Modelo</label>
-              <input class="inp inline" id="or-model" type="text" placeholder="provedor/modelo" autocomplete="off" spellcheck="false" />
+              <label for="or-model" data-i18n="ai.model"></label>
+              <input class="inp inline" id="or-model" type="text" data-i18n-placeholder="ai.modelPlaceholder" autocomplete="off" spellcheck="false" />
             </div>
             <div class="row">
-              <label for="or-key">Chave da API</label>
+              <label for="or-key" data-i18n="ai.key"></label>
               <span class="ctl">
                 <input class="inp inline" id="or-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" spellcheck="false" />
-                <button class="lnk" id="or-test" type="button">Testar</button>
+                <button class="lnk" id="or-test" type="button" data-i18n="ai.test"></button>
               </span>
             </div>
           </div>
-          <p class="note" id="or-status">Se a IA não responder em 10s, o app cola o texto sem refinar e avisa no overlay.</p>
+          <p class="note" id="or-status" data-i18n="ai.note"></p>
         </section>
 
         <!-- OVERLAY -->
@@ -282,32 +282,32 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Overlay</h1>
-              <p class="sub">Onde o aviso aparece: no monitor em que está o cursor, fora do Dock e da barra de menus.</p>
+              <h1 data-i18n="nav.overlay"></h1>
+              <p class="sub" data-i18n="ov.sub"></p>
             </div>
           </header>
           <div class="ov">
-            <div class="posgrid" id="posgrid" role="group" aria-label="Posição do overlay">
-              <button type="button" data-position="top-left" aria-label="Superior esquerdo"></button>
-              <button type="button" data-position="top" aria-label="Superior centro"></button>
-              <button type="button" data-position="top-right" aria-label="Superior direito"></button>
-              <button type="button" data-position="left" aria-label="Meio esquerdo"></button>
-              <button type="button" data-position="center" aria-label="Centro"></button>
-              <button type="button" data-position="right" aria-label="Meio direito"></button>
-              <button type="button" data-position="bottom-left" aria-label="Inferior esquerdo"></button>
-              <button type="button" data-position="bottom" aria-label="Inferior centro"></button>
-              <button type="button" data-position="bottom-right" aria-label="Inferior direito"></button>
+            <div class="posgrid" id="posgrid" role="group" data-i18n-aria="ov.position">
+              <button type="button" data-position="top-left" data-i18n-aria="ov.topLeft"></button>
+              <button type="button" data-position="top" data-i18n-aria="ov.top"></button>
+              <button type="button" data-position="top-right" data-i18n-aria="ov.topRight"></button>
+              <button type="button" data-position="left" data-i18n-aria="ov.left"></button>
+              <button type="button" data-position="center" data-i18n-aria="ov.center"></button>
+              <button type="button" data-position="right" data-i18n-aria="ov.right"></button>
+              <button type="button" data-position="bottom-left" data-i18n-aria="ov.bottomLeft"></button>
+              <button type="button" data-position="bottom" data-i18n-aria="ov.bottom"></button>
+              <button type="button" data-position="bottom-right" data-i18n-aria="ov.bottomRight"></button>
             </div>
-            <div class="ovprev"><div class="hud"><span class="st">Colado</span><span class="txt" id="ov-preview-text">Revisa o pull request antes do deploy.</span><span class="meta">7 palavras</span></div></div>
+            <div class="ovprev"><div class="hud"><span class="st" data-i18n="hud.pasted"></span><span class="txt" id="ov-preview-text" data-i18n="ov.previewText"></span><span class="meta" data-i18n="ov.previewWords"></span></div></div>
           </div>
           <div class="rows">
             <div class="row">
-              <span>Mostrar o texto colado<small>Por menos de um segundo, para confirmar o que entrou.</small></span>
-              <button class="sw" type="button" role="switch" data-setting="overlayShowText" aria-label="Mostrar o texto colado"></button>
+              <span><span data-i18n="ov.showText"></span><small data-i18n="ov.showText.hint"></small></span>
+              <button class="sw" type="button" role="switch" data-setting="overlayShowText" data-i18n-aria="ov.showText"></button>
             </div>
             <div class="row">
-              <span>Mostrar o cronômetro ao ditar</span>
-              <button class="sw" type="button" role="switch" data-setting="overlayShowTimer" aria-label="Mostrar o cronômetro"></button>
+              <span data-i18n="ov.timer"></span>
+              <button class="sw" type="button" role="switch" data-setting="overlayShowTimer" data-i18n-aria="ov.timer.aria"></button>
             </div>
           </div>
         </section>
@@ -317,13 +317,13 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Permissões</h1>
+              <h1 data-i18n="nav.permissions"></h1>
               <p class="sub" id="perm-sub"></p>
             </div>
-            <button class="btn" id="perm-grant" type="button">Liberar permissões</button>
+            <button class="btn" id="perm-grant" type="button" data-i18n="ob.grant"></button>
           </header>
           <div class="rows" id="perm-rows"></div>
-          <p class="note">A lista se atualiza sozinha enquanto os ajustes do sistema estão abertos.</p>
+          <p class="note" data-i18n="perm.liveNote"></p>
         </section>
 
         <!-- SISTEMA -->
@@ -331,35 +331,35 @@
           <header class="ph">
             <div class="ph-text">
               <p class="label">Speech to Text</p>
-              <h1>Sistema</h1>
-              <p class="sub">Inicialização, histórico, atualizações e diagnóstico.</p>
+              <h1 data-i18n="nav.system"></h1>
+              <p class="sub" data-i18n="sys.sub"></p>
             </div>
           </header>
           <div class="rows">
             <div class="row">
-              <span>Abrir ao iniciar o sistema</span>
-              <button class="sw" type="button" role="switch" id="autolaunch" aria-label="Abrir ao iniciar o sistema"></button>
+              <span data-i18n="sys.autolaunch"></span>
+              <button class="sw" type="button" role="switch" id="autolaunch" data-i18n-aria="sys.autolaunch"></button>
             </div>
             <div class="row">
-              <span>Guardar histórico<small>Só o texto, nunca o áudio.</small></span>
+              <span><span data-i18n="sys.history"></span><small data-i18n="sys.history.hint"></small></span>
               <span class="ctl">
                 <span class="seg" data-setting="historyDays" data-type="number" role="group">
-                  <button type="button" data-value="0">Não</button>
-                  <button type="button" data-value="7">7 dias</button>
-                  <button type="button" data-value="30">30 dias</button>
+                  <button type="button" data-value="0" data-i18n="sys.history.off"></button>
+                  <button type="button" data-value="7" data-i18n-days="7"></button>
+                  <button type="button" data-value="30" data-i18n-days="30"></button>
                 </span>
-                <button class="lnk" id="clear-history" type="button">Apagar</button>
+                <button class="lnk" id="clear-history" type="button" data-i18n="sys.clear"></button>
               </span>
             </div>
             <div class="row">
-              <span>Atualizações<small id="update-status">Ainda não verificado</small></span>
-              <button class="lnk" id="check-updates" type="button">Verificar agora</button>
+              <span><span data-i18n="sys.updates"></span><small id="update-status" data-i18n="sys.updates.unchecked"></small></span>
+              <button class="lnk" id="check-updates" type="button" data-i18n="sys.updates.check"></button>
             </div>
             <div class="row">
-              <span>Diagnóstico<small>Tempos de cada ditado e erros, sem o texto</small></span>
+              <span><span data-i18n="sys.diagnostics"></span><small data-i18n="sys.diagnostics.hint"></small></span>
               <span class="ctl">
-                <button class="lnk" id="copy-diagnostics" type="button">Copiar</button>
-                <button class="lnk" id="open-logs" type="button">Abrir pasta</button>
+                <button class="lnk" id="copy-diagnostics" type="button" data-i18n="sys.copy"></button>
+                <button class="lnk" id="open-logs" type="button" data-i18n="sys.openFolder"></button>
               </span>
             </div>
           </div>

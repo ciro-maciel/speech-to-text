@@ -61,7 +61,11 @@
     ],
     "macOS": {
       "minimumSystemVersion": "11.0",
-      "entitlements": "../entitlements.mac.plist"
+      "entitlements": "../entitlements.mac.plist",
+      "files": {
+        "Resources/en.lproj/InfoPlist.strings": "locales/en.lproj/InfoPlist.strings",
+        "Resources/pt-BR.lproj/InfoPlist.strings": "locales/pt-BR.lproj/InfoPlist.strings"
+      }
     },
     "externalBin": [
       "whisper-cli",
