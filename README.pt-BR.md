@@ -10,7 +10,7 @@ A transcrição roda no seu Mac com o [whisper.cpp](https://github.com/ggml-org/
 
 [English](README.md)
 
-![Speech to Text: a tela inicial, com os atalhos, a contagem do dia e as últimas transcrições](docs/overview.webp)
+![Speech to Text: a tela inicial, com os atalhos, a contagem do dia e as últimas transcrições](docs/overview.pt-BR.webp)
 
 ## Instalar
 
