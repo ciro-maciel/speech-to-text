@@ -4,6 +4,8 @@
 
 One of [six free, open-source Mac apps](#more-from-ciro-cesar-maciel) by [Ciro Cesar Maciel](https://ciromaciel.click/?ref=oss-speech-to-text).
 
+**[Watch the 1-minute video](https://youtu.be/FjEQF7LmHqg)**
+
 Transcription runs on your Mac with [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Your voice is never uploaded: the audio becomes text on your machine and is thrown away. No account, no minute quota, no telemetry. A menu bar app built with Tauri and Rust.
 
 [Português](README.pt-BR.md)
