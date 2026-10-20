@@ -20,6 +20,8 @@ curl -fsSL https://blob.ciromaciel.click/tools/speech-to-text/install.sh | bash
 
 O script baixa o `.dmg` mais recente, copia o Speech to Text para `/Applications` e abre.
 
+Com o [Homebrew](https://github.com/ciro-maciel/homebrew-tap): `brew install --cask ciro-maciel/tap/ciro-speech-to-text`.
+
 Prefere a imagem de disco? [Baixe o Speech-to-Text-macos.dmg](https://blob.ciromaciel.click/tools/speech-to-text/latest/Speech-to-Text-macos.dmg). Abra e arraste o Speech to Text para Aplicativos. Ele é assinado com Developer ID e notarizado pela Apple, então o macOS abre sem aviso.
 
 Na primeira vez, o macOS pede duas permissões: **Microfone** (para ouvir você) e **Acessibilidade** (para colar o texto onde está o cursor). As cópias instaladas se atualizam sozinhas.

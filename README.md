@@ -20,6 +20,8 @@ curl -fsSL https://blob.ciromaciel.click/tools/speech-to-text/install.sh | bash
 
 The script downloads the latest `.dmg`, copies Speech to Text to `/Applications` and opens it.
 
+With [Homebrew](https://github.com/ciro-maciel/homebrew-tap): `brew install --cask ciro-maciel/tap/ciro-speech-to-text`.
+
 Prefer the disk image? [Download Speech-to-Text-macos.dmg](https://blob.ciromaciel.click/tools/speech-to-text/latest/Speech-to-Text-macos.dmg). Open it and drag Speech to Text to Applications. It is signed with Developer ID and notarized by Apple, so macOS opens it with no warning.
 
 On first start, macOS asks for two permissions: **Microphone** (to hear you) and **Accessibility** (to paste the text where your cursor is). Installed copies keep themselves up to date.
