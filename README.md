@@ -6,6 +6,8 @@ One of [six free, open-source Mac apps](#more-from-ciro-cesar-maciel) by [Ciro C
 
 **[Watch the 1-minute video](https://youtu.be/FjEQF7LmHqg)**
 
+[![As seen on Open Source Alternatives](https://www.opensourcealternatives.to/badge-osa.svg)](https://www.opensourcealternatives.to)
+
 Transcription runs on your Mac with [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Your voice is never uploaded: the audio becomes text on your machine and is thrown away. No account, no minute quota, no telemetry. A menu bar app built with Tauri and Rust.
 
 [Português](README.pt-BR.md)
