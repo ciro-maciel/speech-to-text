@@ -31,6 +31,6 @@ It needs the Parakeet model downloaded once (the app's Transcription screen). If
 
 ## Reporting a bug
 
-Say which macOS version, which Mac and what the app showed. The app logs to the system log: `log show --last 10m --predicate 'process == "SpeechToText"'`. Never paste an API key or a private transcript into an issue.
+Say which macOS version, which Mac and what the app showed. To see the app's log, quit it and run it from Terminal: `"/Applications/Speech to Text.app/Contents/MacOS/speech-to-text"`. Never paste an API key or a private transcript into an issue.
 
 For anything that could expose someone's voice, text or key, read [SECURITY.md](SECURITY.md) first.

@@ -26,7 +26,9 @@ BIN="$("${SWIFT[@]}" --show-bin-path)/SpeechToText"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$RESOURCES"
-cp "$BIN" "$APP/Contents/MacOS/SpeechToText"
+# The executable keeps the 1.x name: the Tauri updater relaunches it by that path after
+# moving a copy to 2, and the 1.x login item points to it.
+cp "$BIN" "$APP/Contents/MacOS/speech-to-text"
 # Every build carries VERSION; the window's footer reads it back.
 sed "s/__VERSION__/$VERSION/g" "$ROOT/Resources/Info.plist" > "$APP/Contents/Info.plist"
 cp -R "$ROOT/Resources/AppIcon.icns" "$ROOT/Resources/Fonts" "$ROOT/Resources/Icons" \

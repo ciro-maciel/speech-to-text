@@ -57,7 +57,7 @@ CLIPBOARD="$(pbpaste)"
 
 print "Speech to Text — end-to-end check"
 cp "$WORK/silence.wav" "$WORK/input.wav"
-STT_DATA_DIR="$DATA" STT_E2E_TRIGGER="$TRIGGER" STT_E2E_WAV="$WORK/input.wav" "$APP/Contents/MacOS/SpeechToText" >"$WORK/app.log" 2>&1 &
+STT_DATA_DIR="$DATA" STT_E2E_TRIGGER="$TRIGGER" STT_E2E_WAV="$WORK/input.wav" "$APP/Contents/MacOS/speech-to-text" >"$WORK/app.log" 2>&1 &
 PID=$!
 for _ in {1..120}; do grep -q "\[parakeet\] preloaded" "$WORK/app.log" && grep -q "microphone open" "$WORK/app.log" && break; sleep 0.5; done
 grep -q "\[parakeet\] preloaded" "$WORK/app.log" && ok "starts, loads Parakeet and opens the microphone" || bad "did not load: $(tail -3 "$WORK/app.log")"

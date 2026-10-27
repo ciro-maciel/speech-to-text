@@ -32,7 +32,7 @@ fi
 # Install from the packed image, the same bytes someone downloading it gets.
 MOUNT="$(mktemp -d)"
 hdiutil attach "$DMG" -nobrowse -mountpoint "$MOUNT" >/dev/null
-pkill -x SpeechToText >/dev/null 2>&1 || true
+pkill -x speech-to-text >/dev/null 2>&1 || true
 rm -rf "/Applications/Speech to Text.app"
 cp -R "$MOUNT/Speech to Text.app" /Applications/
 hdiutil detach "$MOUNT" >/dev/null
