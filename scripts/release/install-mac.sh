@@ -36,7 +36,8 @@ TARGET="/Applications"
 
 # latest.json names the immutable file of the newest version; the fixed
 # latest/ link can be served from a cache for a few minutes after a release.
-URL="$(curl -fsSL "$BASE/latest.json" | sed -n 's/.*"url": *"\([^"]*\)".*/\1/p')"
+# Only a .dmg counts: Speech to Text's latest.json also carries the 1.x updater's archive.
+URL="$(curl -fsSL "$BASE/latest.json" | sed -n 's/.*"url": *"\([^"]*\.dmg\)".*/\1/p' | head -1)"
 [ -n "$URL" ] || URL="$BASE/latest/__FILE__-macos.dmg"
 
 echo "Downloading ${NAME}…"
