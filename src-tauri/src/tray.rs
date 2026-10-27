@@ -392,8 +392,8 @@ fn build_menu(app: &tauri::AppHandle) -> tauri::Result<Menu<Wry>> {
     items.push(Box::new(mic_menu));
 
     let model_menu = Submenu::with_id(app, "model", format!("{}: {}", tr("Model", "Modelo"), cfg.model), true)?;
-    for name in crate::models::AVAILABLE_MODELS {
-        if crate::config::get_model_path(app, name).exists() {
+    for name in crate::models::available() {
+        if crate::models::is_installed(app, name) {
             model_menu.append(&CheckMenuItem::with_id(
                 app, format!("model:{name}"), name, true, cfg.model == name, None::<&str>,
             )?)?;

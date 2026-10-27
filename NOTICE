@@ -10,6 +10,14 @@ The app bundles third-party material under its own license:
 - Silero VAD (ggml-silero-v6.2.0.bin, downloaded by scripts/whisper.sh), by Silero Team.
   MIT License. https://github.com/snakers4/silero-vad
 
+- FluidAudio (inside parakeet-server, built by scripts/parakeet.sh), by FluidInference.
+  Apache License 2.0. https://github.com/FluidInference/FluidAudio
+
+- The Parakeet speech model the app downloads on demand (FluidInference/parakeet-ultra-coreml),
+  Moondream's parakeet-ultra, built on NVIDIA's Parakeet TDT and converted to CoreML by
+  FluidInference. Creative Commons Attribution 4.0.
+  https://huggingface.co/FluidInference/parakeet-ultra-coreml
+
 - The Whisper speech models the app downloads on demand, by OpenAI, converted to ggml
   by the whisper.cpp project. MIT License. https://github.com/openai/whisper
 

@@ -9,3 +9,8 @@ src-tauri/gen/
 src-tauri/whisper-cli-*
 src-tauri/whisper-server-*
 src-tauri/resources/
+
+# Made by scripts/parakeet.sh: the Parakeet sidecar and its SwiftPM build.
+.parakeet/
+parakeet/.build/
+src-tauri/parakeet-server-*

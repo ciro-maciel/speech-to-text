@@ -6,8 +6,28 @@ use std::sync::{Arc, Mutex};
 use tokio::io::AsyncWriteExt;
 
 use crate::config::get_model_path;
+use crate::parakeet;
 
 pub const AVAILABLE_MODELS: [&str; 5] = ["tiny", "base", "small", "medium", "large-v3-turbo"];
+
+/// Every model this Mac can run: Parakeet first where it is supported, then Whisper.
+pub fn available() -> Vec<&'static str> {
+    let mut names = Vec::new();
+    if parakeet::is_supported() {
+        names.push(parakeet::MODEL);
+    }
+    names.extend(AVAILABLE_MODELS);
+    names
+}
+
+/// Whether `name` is downloaded and complete.
+pub fn is_installed(app: &tauri::AppHandle, name: &str) -> bool {
+    if name == parakeet::MODEL {
+        parakeet::is_supported() && parakeet::is_installed(app)
+    } else {
+        get_model_path(app, name).exists()
+    }
+}
 const BASE_URL: &str = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,7 +52,17 @@ impl ModelManager {
 
     pub async fn get_models(&self, app: &tauri::AppHandle) -> Vec<ModelInfo> {
         let mut models = Vec::new();
-        for name in AVAILABLE_MODELS {
+        for name in available() {
+            if name == parakeet::MODEL {
+                let exists = parakeet::is_installed(app);
+                models.push(ModelInfo {
+                    name: name.to_string(),
+                    exists,
+                    size: if exists { parakeet::installed_size(app) } else { 0 },
+                    path: parakeet::model_dir(app).to_string_lossy().to_string(),
+                });
+                continue;
+            }
             let path = get_model_path(app, name);
             let mut exists = false;
             let mut size = 0u64;
@@ -63,8 +93,11 @@ impl ModelManager {
         app: tauri::AppHandle,
         model_name: String,
     ) -> Result<String, String> {
-        if !AVAILABLE_MODELS.contains(&model_name.as_str()) {
+        if !available().contains(&model_name.as_str()) {
             return Err(format!("Invalid model name: {}", model_name));
+        }
+        if model_name == parakeet::MODEL {
+            return self.download_parakeet(app, model_name).await;
         }
 
         let dest_path = get_model_path(&app, &model_name);
@@ -132,6 +165,24 @@ impl ModelManager {
         }
 
         Ok(dest_path.to_string_lossy().to_string())
+    }
+
+    async fn download_parakeet(&self, app: tauri::AppHandle, model_name: String) -> Result<String, String> {
+        let cancel_flag = Arc::new(AtomicBool::new(false));
+        self.downloading.lock().unwrap().insert(model_name.clone(), cancel_flag.clone());
+        let total = parakeet::DOWNLOAD_BYTES;
+        let emitter = app.clone();
+        let result = parakeet::download(&app, cancel_flag, |fraction| {
+            let _ = emitter.emit("model-download-progress", serde_json::json!({
+                "model": model_name,
+                "progress": fraction * 100.0,
+                "downloaded": (fraction * total as f64) as u64,
+                "total": total,
+            }));
+        })
+        .await;
+        self.downloading.lock().unwrap().remove(&model_name);
+        result.map(|dir| dir.to_string_lossy().to_string())
     }
 
     pub fn cancel_download(&self, model_name: String) -> bool {

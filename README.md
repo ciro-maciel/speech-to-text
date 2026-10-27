@@ -8,7 +8,7 @@ One of [six free, open-source Mac apps](#more-from-ciro-cesar-maciel) by [Ciro C
 
 [![As seen on Open Source Alternatives](https://www.opensourcealternatives.to/badge-osa.svg)](https://www.opensourcealternatives.to) [![Speech to Text by Ciro Cesar Maciel | AlternativeTo](https://alternativeto.net/static/badges/badge-compact-color.svg)](https://alternativeto.net/software/speech-to-text-by-ciro-cesar-maciel/about/?utm_source=badge&utm_medium=referral)
 
-Transcription runs on your Mac with [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Your voice is never uploaded: the audio becomes text on your machine and is thrown away. No account, no minute quota, no telemetry. A menu bar app built with Tauri and Rust.
+Transcription runs on your Mac, with NVIDIA Parakeet on the Neural Engine ([FluidAudio](https://github.com/FluidInference/FluidAudio)) or [whisper.cpp](https://github.com/ggml-org/whisper.cpp). Your voice is never uploaded: the audio becomes text on your machine and is thrown away. No account, no minute quota, no telemetry. A menu bar app built with Tauri and Rust.
 
 [Português](README.pt-BR.md)
 
@@ -47,8 +47,8 @@ Every shortcut can be changed in the settings window, opened from the menu bar i
 
 | Feature | Detail |
 | --- | --- |
-| Local transcription | whisper.cpp with Metal, kept loaded in memory so the first word does not wait for a cold start |
-| Models | tiny, base, small, medium and large-v3-turbo; the app downloads the one you choose from Hugging Face |
+| Local transcription | Parakeet on the Neural Engine (macOS 14 or later): fewer errors than large-v3-turbo in Portuguese, long dictations included, in about 80 MB of memory instead of 2 GB. Or whisper.cpp with Metal. Either one stays loaded so the first word does not wait for a cold start |
+| Models | parakeet, tiny, base, small, medium and large-v3-turbo; the app downloads the one you choose from Hugging Face |
 | Languages | Portuguese, English, Spanish, French, German, Italian, or automatic detection |
 | Interface | English and Brazilian Portuguese, following the Mac's language |
 | Voice detection | Silero VAD trims silence before Whisper sees the audio |
@@ -76,10 +76,11 @@ git clone https://github.com/ciro-maciel/speech-to-text.git
 cd speech-to-text
 bun install
 bash scripts/whisper.sh      # builds whisper.cpp from source and fetches the voice detector
+bash scripts/parakeet.sh     # builds the Parakeet sidecar (Swift, FluidAudio)
 bun run dev                  # or: bun run build → src-tauri/target/release/bundle
 ```
 
-`scripts/whisper.sh` builds `whisper-cli` and `whisper-server` from a pinned whisper.cpp tag and places them where Tauri expects its sidecars. The speech models are not in the repository: the app downloads them on demand into `~/Library/Application Support/speech-to-text/models`.
+`scripts/whisper.sh` builds `whisper-cli` and `whisper-server` from a pinned whisper.cpp tag and places them where Tauri expects its sidecars; `scripts/parakeet.sh` does the same for `parakeet-server`. The speech models are not in the repository: the app downloads them on demand into `~/Library/Application Support/speech-to-text/models`.
 
 A local build is signed ad hoc, so macOS asks for Microphone and Accessibility again after each rebuild. The official build is signed with Developer ID (`scripts/release/build-mac.sh`).
 
@@ -104,7 +105,7 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE). whisper.cpp, the Silero voice detector, Montserrat and the icons keep their own licenses: see [NOTICE](NOTICE).
+[MIT](LICENSE). whisper.cpp, FluidAudio, the Parakeet and Whisper models, the Silero voice detector, Montserrat and the icons keep their own licenses: see [NOTICE](NOTICE).
 
 ---
 

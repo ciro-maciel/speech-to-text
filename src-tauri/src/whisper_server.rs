@@ -20,6 +20,7 @@ use tokio::sync::Mutex;
 /// A cold start reads the model from disk — generous for 1.6 GB on slow disks.
 const STARTUP_TIMEOUT: Duration = Duration::from_secs(90);
 const INFERENCE_TIMEOUT: Duration = Duration::from_secs(120);
+const SIDECAR: &str = "whisper-server";
 
 /// Silero voice-activity model, bundled as a resource. Whisper hallucinates
 /// on silence ("Legenda por…", "Acesse o nosso site.", bits of the prompt);
@@ -173,7 +174,7 @@ impl WhisperServer {
         if let Some(old) = guard.take() {
             let _ = old.child.kill();
         }
-        kill_stale_server();
+        kill_stale(SIDECAR);
 
         let running = spawn(app, model, &self.pid).await?;
         let ready = (running.port, running.vad);
@@ -204,13 +205,13 @@ async fn spawn(app: &tauri::AppHandle, model: &Path, pid: &AtomicU32) -> Result<
 
     let (mut rx, child) = app
         .shell()
-        .sidecar("whisper-server")
+        .sidecar(SIDECAR)
         .map_err(|e| format!("whisper-server sidecar not found: {e}"))?
         .args(args)
         .spawn()
         .map_err(|e| format!("Failed to spawn whisper-server: {e}"))?;
     pid.store(child.pid(), Ordering::SeqCst);
-    write_pid_file(child.pid());
+    write_pid_file(SIDECAR, child.pid());
     watch_parent(child.pid());
 
     // Drain the output (the server logs every request) and notice if it dies,
@@ -258,7 +259,7 @@ fn free_port() -> Result<u16, String> {
 }
 
 /// 16 kHz mono 16-bit WAV of `samples` zeros.
-fn silent_wav(samples: u32) -> Vec<u8> {
+pub(crate) fn silent_wav(samples: u32) -> Vec<u8> {
     let data_len = samples * 2;
     let mut wav = Vec::with_capacity(44 + data_len as usize);
     wav.extend_from_slice(b"RIFF");
@@ -279,25 +280,26 @@ fn silent_wav(samples: u32) -> Vec<u8> {
 
 // ── Orphan cleanup ──────────────────────────────────────────────────────
 // If the app dies without running its exit handler (crash, updater restart),
-// the server would linger holding ~2 GB. We record its pid and kill it on the
-// next start, after checking the pid still belongs to a whisper-server.
+// a sidecar would linger holding its model. We record its pid and kill it on the
+// next start, after checking the pid still belongs to that sidecar. Shared with
+// parakeet-server.
 
-fn pid_file() -> PathBuf {
-    std::env::temp_dir().join("speech-to-text-whisper-server.pid")
+fn pid_file(sidecar: &str) -> PathBuf {
+    std::env::temp_dir().join(format!("speech-to-text-{sidecar}.pid"))
 }
 
-fn write_pid_file(pid: u32) {
-    let _ = std::fs::write(pid_file(), pid.to_string());
+pub(crate) fn write_pid_file(sidecar: &str, pid: u32) {
+    let _ = std::fs::write(pid_file(sidecar), pid.to_string());
 }
 
-fn kill_stale_server() {
-    let Some(pid) = std::fs::read_to_string(pid_file())
+pub(crate) fn kill_stale(sidecar: &str) {
+    let Some(pid) = std::fs::read_to_string(pid_file(sidecar))
         .ok()
         .and_then(|s| s.trim().parse::<u32>().ok())
     else {
         return;
     };
-    let _ = std::fs::remove_file(pid_file());
+    let _ = std::fs::remove_file(pid_file(sidecar));
 
     #[cfg(unix)]
     {
@@ -306,7 +308,7 @@ fn kill_stale_server() {
             .output()
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
             .unwrap_or_default();
-        if comm.contains("whisper-server") {
+        if comm.contains(sidecar) {
             kill_pid(pid);
         }
     }
@@ -317,7 +319,7 @@ fn kill_stale_server() {
             .output()
             .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
             .unwrap_or_default();
-        if image.contains("whisper-server") {
+        if image.contains(sidecar) {
             kill_pid(pid);
         }
     }
@@ -325,7 +327,7 @@ fn kill_stale_server() {
 
 /// The exit handler doesn't run on a force quit or a signal, so a tiny
 /// watchdog kills the server as soon as the app process is gone.
-fn watch_parent(server_pid: u32) {
+pub(crate) fn watch_parent(server_pid: u32) {
     #[cfg(unix)]
     {
         let script = format!(
@@ -345,7 +347,7 @@ fn watch_parent(server_pid: u32) {
     let _ = server_pid;
 }
 
-fn kill_pid(pid: u32) {
+pub(crate) fn kill_pid(pid: u32) {
     if pid == 0 {
         return;
     }

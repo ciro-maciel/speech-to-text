@@ -50,8 +50,8 @@ const languageName = (code) => {
   const name = t(`lang.${code}`) || t("lang.en");
   return LOCALE === "pt-BR" ? name.toLowerCase() : name;
 };
-const MODEL_SIZE = { tiny: 77691713, base: 147951465, small: 487601967, medium: 1533763059, "large-v3-turbo": 1624555275 };
-const MODEL_NOTE = { tiny: "model.tiny", "large-v3-turbo": "model.large" };
+const MODEL_SIZE = { parakeet: 643000000, tiny: 77691713, base: 147951465, small: 487601967, medium: 1533763059, "large-v3-turbo": 1624555275 };
+const MODEL_NOTE = { parakeet: "model.parakeet", tiny: "model.tiny", "large-v3-turbo": "model.large" };
 
 // ─────────────────────────────────────────────────────────────────
 // Formatting

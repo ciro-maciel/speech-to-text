@@ -69,7 +69,8 @@
     },
     "externalBin": [
       "whisper-cli",
-      "whisper-server"
+      "whisper-server",
+      "parakeet-server"
     ],
     "resources": {
       "resources/ggml-silero-v6.2.0.bin": "ggml-silero-v6.2.0.bin"

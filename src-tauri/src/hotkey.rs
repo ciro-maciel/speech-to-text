@@ -399,6 +399,28 @@ impl HotkeyManager {
                     (Some("release"), Some(mode)) if !Self::is_paused() => Self::on_released(&app2, mode),
                     (Some("escape"), _) if ESC_REGISTERED.load(Ordering::SeqCst) => Self::cancel_recording(&app2),
                     (Some("paste-last"), _) if !Self::is_paused() => crate::paste_last(&app2),
+                    // The window's Download and Cancel buttons.
+                    (Some("download"), Some(model)) => {
+                        let (app3, model) = (app2.clone(), model.to_string());
+                        tauri::async_runtime::spawn(async move {
+                            let manager = app3.state::<crate::AppState>().model_manager.clone();
+                            match manager.download_model(app3.clone(), model.clone()).await {
+                                Ok(_) => log::info!("[e2e] downloaded {model}"),
+                                Err(e) => log::warn!("[e2e] download {model} failed: {e}"),
+                            }
+                        });
+                    }
+                    (Some("cancel"), Some(model)) => {
+                        app2.state::<crate::AppState>().model_manager.cancel_download(model.to_string());
+                    }
+                    // "set model \"parakeet\"": the same path as a settings control.
+                    (Some("set"), Some(key)) => {
+                        let raw = parts.collect::<Vec<_>>().join(" ");
+                        match serde_json::from_str(&raw).map_err(|e| e.to_string()).and_then(|v| crate::apply_setting(&app2, key, v)) {
+                            Ok(_) => log::info!("[e2e] set {key}"),
+                            Err(e) => log::warn!("[e2e] set {key} failed: {e}"),
+                        }
+                    }
                     _ => {}
                 }
             });

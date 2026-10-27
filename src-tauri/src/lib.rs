@@ -3,6 +3,7 @@ mod history;
 mod i18n;
 mod hotkey;
 mod models;
+mod parakeet;
 mod permissions;
 #[cfg(windows)]
 mod process;
@@ -18,7 +19,7 @@ mod window;
 use config::load_config;
 use hotkey::HotkeyManager;
 use models::ModelManager;
-use transcription::{paste_text_via_clipboard, transcribe_audio, TranscribeOptions, PASTE_NEEDS_PERMISSION};
+use transcription::{paste_text_via_clipboard, transcribe_audio, Engine, TranscribeOptions, PASTE_NEEDS_PERMISSION};
 use window::{flash_overlay, overlay_state};
 
 use std::sync::Mutex;
@@ -29,6 +30,7 @@ pub struct AppState {
     pub config: Mutex<config::AppConfig>,
     pub model_manager: std::sync::Arc<ModelManager>,
     pub whisper: std::sync::Arc<whisper_server::WhisperServer>,
+    pub parakeet: std::sync::Arc<parakeet::ParakeetServer>,
     pub history: history::History,
 }
 
@@ -50,12 +52,26 @@ fn whisper_prompt(cfg: &config::AppConfig) -> String {
     }
 }
 
-fn preload_model(app: &AppHandle, model_path: std::path::PathBuf) {
+/// Load `model` in its engine and stop the other one, so only one model sits in memory.
+fn preload_model(app: &AppHandle, model: &str) {
     let app = app.clone();
-    let whisper = app.state::<AppState>().whisper.clone();
+    let state = app.state::<AppState>();
+    let (whisper, parakeet) = (state.whisper.clone(), state.parakeet.clone());
+    let model = model.to_string();
     tauri::async_runtime::spawn(async move {
-        whisper.preload(&app, &model_path).await;
+        if model == parakeet::MODEL {
+            whisper.stop();
+            parakeet.preload(&app).await;
+        } else {
+            parakeet.stop();
+            whisper.preload(&app, &config::get_model_path(&app, &model)).await;
+        }
     });
+}
+
+fn stop_models(state: &AppState) {
+    state.whisper.stop();
+    state.parakeet.stop();
 }
 
 fn re_register_hotkeys(app: &AppHandle) {
@@ -104,14 +120,16 @@ pub fn apply_setting(app: &AppHandle, key: &str, value: serde_json::Value) -> Re
         "hotkey" | "translateHotkey" | "translateEnabled" | "triggerMode" => re_register_hotkeys(app),
         "model" => {
             if updated.keep_model_loaded {
-                preload_model(app, config::get_model_path(app, &updated.model));
+                preload_model(app, &updated.model);
+            } else {
+                stop_models(&state);
             }
         }
         "keepModelLoaded" => {
             if updated.keep_model_loaded {
-                preload_model(app, config::get_model_path(app, &updated.model));
+                preload_model(app, &updated.model);
             } else {
-                state.whisper.stop();
+                stop_models(&state);
             }
         }
         "historyDays" => state.history.set_retention(app, updated.history_days),
@@ -372,7 +390,7 @@ async fn get_diagnostics(app: AppHandle, state: State<'_, AppState>) -> Result<S
                 lines.extend(
                     text.lines()
                         .filter(|l| {
-                            l.contains("[timing]") || l.contains("[whisper") || l.contains("WARN") || l.contains("ERROR")
+                            l.contains("[timing]") || l.contains("[whisper") || l.contains("[parakeet") || l.contains("WARN") || l.contains("ERROR")
                         })
                         .map(str::to_string),
                 );
@@ -431,7 +449,7 @@ async fn transcribe_audio_command(
     let finish_idle = |app: &AppHandle| tray::set_activity(app, tray::Activity::Idle);
 
     let model_path = config::get_model_path(&app, &cfg.model);
-    if !model_path.exists() {
+    if !models::is_installed(&app, &cfg.model) {
         let message = if i18n::is_portuguese() {
             format!("Modelo {} não encontrado", cfg.model)
         } else {
@@ -459,9 +477,11 @@ async fn transcribe_audio_command(
         use_server: cfg.keep_model_loaded,
         voice_detection: cfg.voice_detection,
     };
+    let uses_parakeet = cfg.model == parakeet::MODEL;
+    let engine = if uses_parakeet { Engine::Parakeet(&state.parakeet) } else { Engine::Whisper(&state.whisper) };
     let transcribe_result = transcribe_audio(
         &app,
-        &state.whisper,
+        engine,
         &model_path,
         audio_data,
         &cfg.language,
@@ -469,6 +489,10 @@ async fn transcribe_audio_command(
         opts,
     )
     .await;
+    // Not kept loaded: Parakeet has no one-shot mode, so its sidecar goes once the clip is done.
+    if uses_parakeet && !cfg.keep_model_loaded {
+        state.parakeet.stop();
+    }
     let stt_ms = t_start.elapsed().as_millis();
 
     let original = match transcribe_result {
@@ -750,6 +774,7 @@ pub fn run() {
             config: Mutex::new(config::AppConfig::default()),
             model_manager: std::sync::Arc::new(ModelManager::new()),
             whisper: std::sync::Arc::new(whisper_server::WhisperServer::new()),
+            parakeet: std::sync::Arc::new(parakeet::ParakeetServer::new()),
             history: history::History::new(),
         })
         .on_window_event(|window, event| {
@@ -814,7 +839,7 @@ pub fn run() {
             // Load the model now, while nobody is waiting, so the first
             // dictation doesn't pay the cold read from disk.
             if config.keep_model_loaded {
-                preload_model(app.handle(), config::get_model_path(app.handle(), &config.model));
+                preload_model(app.handle(), &config.model);
             }
 
             HotkeyManager::register_all(
@@ -878,7 +903,7 @@ pub fn run() {
                         log::error!("[updates] install on quit failed: {e}");
                     }
                 }
-                app.state::<AppState>().whisper.stop();
+                stop_models(&app.state::<AppState>());
                 system_audio::restore_output();
             }
         });

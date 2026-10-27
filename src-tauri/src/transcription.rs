@@ -6,6 +6,7 @@ use tauri_plugin_shell::ShellExt;
 use tauri_plugin_shell::process::CommandEvent;
 use tokio::fs;
 
+use crate::parakeet::ParakeetServer;
 use crate::whisper_server::{self, WhisperServer};
 
 /// User settings that change how a clip is transcribed.
@@ -17,6 +18,13 @@ pub struct TranscribeOptions {
     pub voice_detection: bool,
 }
 
+/// Which engine transcribes the clip.
+pub enum Engine<'a> {
+    Whisper(&'a WhisperServer),
+    /// Whisper's model path and prompt are unused then.
+    Parakeet(&'a ParakeetServer),
+}
+
 pub struct WhisperTranscription {
     pub text: String,
     pub is_noise: bool,
@@ -24,7 +32,7 @@ pub struct WhisperTranscription {
 
 pub async fn transcribe_audio(
     app: &tauri::AppHandle,
-    server: &WhisperServer,
+    engine: Engine<'_>,
     model_path: &PathBuf,
     audio_data: Vec<u8>,
     language: &str,
@@ -36,9 +44,18 @@ pub async fn transcribe_audio(
     }
 
     // Resident server first; the one-shot CLI stays as the safety net so a
-    // server problem costs speed, never the dictation.
-    let raw = if opts.use_server {
-        match server
+    // server problem costs speed, never the dictation. Parakeet has no CLI: a
+    // failed call restarts the sidecar and tries once more.
+    let raw = match engine {
+        Engine::Parakeet(parakeet) => match parakeet.transcribe(app, audio_data.clone(), language).await {
+            Ok(text) => text,
+            Err(e) => {
+                log::warn!("[parakeet] failed ({e}) — restarting and trying again");
+                parakeet.stop();
+                parakeet.transcribe(app, audio_data, language).await?
+            }
+        },
+        Engine::Whisper(server) if opts.use_server => match server
             .transcribe(app, model_path, audio_data.clone(), language, prompt, opts.voice_detection)
             .await
         {
@@ -47,9 +64,10 @@ pub async fn transcribe_audio(
                 log::warn!("[whisper] server failed ({e}) — falling back to whisper-cli");
                 transcribe_with_cli(app, model_path, audio_data, language, prompt, opts.voice_detection).await?
             }
+        },
+        Engine::Whisper(_) => {
+            transcribe_with_cli(app, model_path, audio_data, language, prompt, opts.voice_detection).await?
         }
-    } else {
-        transcribe_with_cli(app, model_path, audio_data, language, prompt, opts.voice_detection).await?
     };
 
     // Segments come back one per line; a dictation is pasted as running text.

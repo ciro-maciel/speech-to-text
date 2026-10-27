@@ -7,8 +7,9 @@
 #
 # Used by .github/workflows/release.yml, and the same on a Mac with the certificate:
 #
-#   1. scripts/whisper.sh builds the whisper.cpp sidecars and fetches the voice detector;
-#   2. `tauri build` signs the app and both sidecars with the Developer ID identity and the
+#   1. scripts/whisper.sh builds the whisper.cpp sidecars and fetches the voice detector, and
+#      scripts/parakeet.sh builds the Parakeet sidecar;
+#   2. `tauri build` signs the app and the three sidecars with the Developer ID identity and the
 #      hardened runtime (entitlements.mac.plist), has Apple notarize the app and staples
 #      the ticket to it, then packs the .dmg and, with an updater key, the signed update
 #      archive the installed apps download;
@@ -48,6 +49,7 @@ NAME="Speech-to-Text"
 BUNDLE="src-tauri/target/release/bundle"
 
 bash scripts/whisper.sh
+bash scripts/parakeet.sh
 bun install --frozen-lockfile
 
 UPDATER='{}'
@@ -66,7 +68,7 @@ codesign --verify --deep --strict "$APP" || fail "the app signature does not ver
 SIGNATURE="$(codesign -dvv "$APP" 2>&1)"
 grep -q "Authority=Developer ID Application" <<<"$SIGNATURE" || fail "the app is not signed with Developer ID"
 grep -q "flags=.*runtime" <<<"$SIGNATURE" || fail "the app has no hardened runtime"
-for BIN in whisper-cli whisper-server; do
+for BIN in whisper-cli whisper-server parakeet-server; do
     grep -q "flags=.*runtime" <<<"$(codesign -dvv "$APP/Contents/MacOS/$BIN" 2>&1)" || fail "$BIN has no hardened runtime"
 done
 xcrun stapler validate "$APP" >/dev/null || fail "the app has no stapled ticket"

@@ -12,7 +12,7 @@ name: Speech to Text — release
 #
 # SIGNING: the Developer ID Application certificate of Ciro Cesar Maciel (secret
 # MACOS_CERTIFICATE), imported into a throwaway keychain. scripts/release/build-mac.sh has
-# Tauri sign the app and the whisper.cpp sidecars with it and the hardened runtime, and
+# Tauri sign the app and the whisper.cpp and Parakeet sidecars with it and the hardened runtime, and
 # notarize the app; then it signs, notarizes and staples the .dmg (App Store Connect API
 # key: NOTARY_KEY, NOTARY_KEY_ID, NOTARY_ISSUER_ID). The fixed identity keeps Microphone and
 # Accessibility granted from one version to the next.
@@ -120,6 +120,12 @@ jobs:
               with:
                   path: .whisper
                   key: whisper-${{ hashFiles('scripts/whisper.sh') }}-${{ runner.os }}-${{ runner.arch }}
+
+            # The Parakeet sidecar's SwiftPM build, FluidAudio included (scripts/parakeet.sh).
+            - uses: actions/cache@v4
+              with:
+                  path: .parakeet
+                  key: parakeet-${{ hashFiles('parakeet/Package.swift', 'parakeet/Package.resolved') }}-${{ runner.os }}-${{ runner.arch }}
 
             - name: Build, sign and notarize
               env:

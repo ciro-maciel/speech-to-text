@@ -1,6 +1,6 @@
 # Notes for coding agents
 
-Speech to Text is a macOS menu bar app built with Tauri 2: Rust in `src-tauri/`, plain HTML, CSS and JavaScript in `src/` (no framework, no bundler). Transcription runs in whisper.cpp, shipped as two sidecar binaries.
+Speech to Text is a macOS menu bar app built with Tauri 2: Rust in `src-tauri/`, plain HTML, CSS and JavaScript in `src/` (no framework, no bundler). Transcription runs in NVIDIA Parakeet (FluidAudio, on the Neural Engine, macOS 14+) or in whisper.cpp, shipped as three sidecar binaries: `parakeet-server`, `whisper-server` and `whisper-cli`. Only the chosen model's engine is kept loaded.
 
 ## Layout
 
@@ -9,6 +9,7 @@ Speech to Text is a macOS menu bar app built with Tauri 2: Rust in `src-tauri/`,
 | `src-tauri/src/lib.rs` | App setup, Tauri commands, the dictation pipeline |
 | `src-tauri/src/hotkey.rs` | Global shortcuts: toggle and hold modes, double tap, Esc, translate, paste last |
 | `src-tauri/src/whisper_server.rs` | Keeps `whisper-server` running with the model loaded; voice detection |
+| `src-tauri/src/parakeet.rs`, `parakeet/` | Keeps `parakeet-server` (Swift) running with Parakeet loaded; JSON lines over stdin and stdout |
 | `src-tauri/src/transcription.rs` | Audio to text, then paste through the clipboard, which is restored after |
 | `src-tauri/src/refinement.rs`, `translation.rs` | Optional OpenRouter calls, text only, with the person's key |
 | `src-tauri/src/models.rs`, `config.rs`, `history.rs` | Model downloads, settings (tauri-plugin-store), text history |
@@ -16,6 +17,7 @@ Speech to Text is a macOS menu bar app built with Tauri 2: Rust in `src-tauri/`,
 | `src-tauri/src/tray.rs`, `window.rs`, `permissions.rs` | Menu bar, the settings window and overlay, Microphone and Accessibility |
 | `src/` | The settings window (`index.html`, `renderer.js`) and the recording overlay |
 | `scripts/whisper.sh` | Builds the whisper.cpp sidecars from source and fetches the voice detector |
+| `scripts/parakeet.sh` | Builds the Parakeet sidecar with SwiftPM |
 | `scripts/smoke-test.sh` | End-to-end check of a packaged build |
 | `scripts/release/` | Signed and notarized build, publishing, the one-line installer; used by `.github/workflows/release.yml` |
 
@@ -23,6 +25,7 @@ Speech to Text is a macOS menu bar app built with Tauri 2: Rust in `src-tauri/`,
 
 ```bash
 bash scripts/whisper.sh
+bash scripts/parakeet.sh
 bun run build
 APP="src-tauri/target/release/bundle/macos/Speech to Text.app/Contents/MacOS"
 scripts/smoke-test.sh "$APP/speech-to-text" "$APP" path/to/ggml-tiny.bin path/to/jfk.wav
