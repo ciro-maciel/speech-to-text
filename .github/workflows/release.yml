@@ -7,8 +7,9 @@ name: Speech to Text — release
 #
 # WHEN IT PUBLISHES: run by hand (workflow_dispatch), and only when VERSION is greater than the
 # published one. Version 2 is the native app; the copies of 1.x out there update themselves
-# through the Tauri updater, which reads latest.json in another shape, so moving them to 2 is
-# its own decision. Until then a push never publishes.
+# through the Tauri updater, which reads latest.json in its own shape, so moving them to 2 is
+# its own decision. Until then a push never publishes. 2.0.3 went out by hand, keeping latest.json
+# in the 1.x shape (AGENTS.md); publish-mac.sh writes another shape and must change first.
 #
 # SIGNING: the Developer ID Application certificate of Ciro Cesar Maciel (secret
 # MACOS_CERTIFICATE), imported into a throwaway keychain; scripts/build.sh finds it and signs

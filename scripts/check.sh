@@ -59,6 +59,8 @@ print "Speech to Text — end-to-end check"
 cp "$WORK/silence.wav" "$WORK/input.wav"
 STT_DATA_DIR="$DATA" STT_E2E_TRIGGER="$TRIGGER" STT_E2E_WAV="$WORK/input.wav" "$APP/Contents/MacOS/speech-to-text" >"$WORK/app.log" 2>&1 &
 PID=$!
+# Whatever happens below, the copy goes: a copy left running makes the next one quit (one instance per identifier).
+trap 'kill $PID 2>/dev/null' EXIT
 for _ in {1..120}; do grep -q "\[parakeet\] preloaded" "$WORK/app.log" && grep -q "microphone open" "$WORK/app.log" && break; sleep 0.5; done
 grep -q "\[parakeet\] preloaded" "$WORK/app.log" && ok "starts, loads Parakeet and opens the microphone" || bad "did not load: $(tail -3 "$WORK/app.log")"
 [ "$(count)" = 0 ] && ok "nothing dictated on its own" || bad "dictated before any command"
@@ -85,12 +87,12 @@ var uid: Unmanaged<CFString>?; var us = UInt32(MemoryLayout<Unmanaged<CFString>?
 AudioObjectGetPropertyData(id, &u, 0, nil, &us, &uid)
 print(uid!.takeRetainedValue())
 SWIFT
-UID="$(swift "$WORK/uid.swift" 2>/dev/null)"
-send "microphone $UID"; sleep 1.5
+DEVICE="$(swift "$WORK/uid.swift" 2>/dev/null)"
+send "microphone $DEVICE"; sleep 1.5
 if dictate "$WORK/speech.wav"; then
-    last | grep -qi "governador" && ok "with a chosen microphone ($UID)" || bad "chosen microphone, wrong text: $(last)"
+    last | grep -qi "governador" && ok "with a chosen microphone (${DEVICE})" || bad "chosen microphone, wrong text: $(last)"
 else
-    bad "a chosen microphone delivered no audio ($UID)"
+    bad "a chosen microphone delivered no audio (${DEVICE})"
 fi
 send "microphone default"; sleep 1
 
