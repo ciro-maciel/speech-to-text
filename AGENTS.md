@@ -1,41 +1,43 @@
 # Notes for coding agents
 
-Speech to Text is a macOS menu bar app built with Tauri 2: Rust in `src-tauri/`, plain HTML, CSS and JavaScript in `src/` (no framework, no bundler). Transcription runs in NVIDIA Parakeet (FluidAudio, on the Neural Engine, macOS 14+) or in whisper.cpp, shipped as three sidecar binaries: `parakeet-server`, `whisper-server` and `whisper-cli`. Only the chosen model's engine is kept loaded.
+Speech to Text is a native macOS menu bar app: AppKit and SwiftUI, one Swift package (`Package.swift`, FluidAudio its only dependency) wrapped into `dist/Speech to Text.app` by `scripts/build.sh`. Transcription is NVIDIA Parakeet on the Neural Engine, in the app's own process. Versions 1.x were a Tauri app; the last one is commit `a969093`.
 
 ## Layout
 
 | Path | What it is |
 | --- | --- |
-| `src-tauri/src/lib.rs` | App setup, Tauri commands, the dictation pipeline |
-| `src-tauri/src/hotkey.rs` | Global shortcuts: toggle and hold modes, double tap, Esc, translate, paste last |
-| `src-tauri/src/whisper_server.rs` | Keeps `whisper-server` running with the model loaded; voice detection |
-| `src-tauri/src/parakeet.rs`, `parakeet/` | Keeps `parakeet-server` (Swift) running with Parakeet loaded; JSON lines over stdin and stdout |
-| `src-tauri/src/transcription.rs` | Audio to text, then paste through the clipboard, which is restored after |
-| `src-tauri/src/refinement.rs`, `translation.rs` | Optional OpenRouter calls, text only, with the person's key |
-| `src-tauri/src/models.rs`, `config.rs`, `history.rs` | Model downloads, settings (tauri-plugin-store), text history |
-| `src-tauri/src/updates.rs` | The Tauri updater reading `latest.json` |
-| `src-tauri/src/tray.rs`, `window.rs`, `permissions.rs` | Menu bar, the settings window and overlay, Microphone and Accessibility |
-| `src/` | The settings window (`index.html`, `renderer.js`) and the recording overlay |
-| `scripts/whisper.sh` | Builds the whisper.cpp sidecars from source and fetches the voice detector |
-| `scripts/parakeet.sh` | Builds the Parakeet sidecar with SwiftPM |
-| `scripts/smoke-test.sh` | End-to-end check of a packaged build |
-| `scripts/release/` | Signed and notarized build, publishing, the one-line installer; used by `.github/workflows/release.yml` |
+| `Sources/SpeechToText/main.swift` | The app: menu bar glyph and menu, global shortcuts, the window, single instance, end-to-end commands |
+| `Sources/SpeechToText/Dictation.swift` | The shortcut's state machine (hold, toggle, double tap, Esc) and the path from audio to pasted text |
+| `Sources/SpeechToText/Transcriber.swift` | Parakeet through FluidAudio: download, load, transcribe |
+| `Sources/SpeechToText/Recorder.swift` | The microphone: AVAudioEngine to 16 kHz mono, device choice, warm pre-roll, level |
+| `Sources/SpeechToText/OpenRouter.swift` | Optional Refine and Translate, text only, with the person's key |
+| `Sources/SpeechToText/System.swift` | Paste (clipboard + ⌘V), mute while dictating, tones, permissions, login item |
+| `Sources/SpeechToText/Settings.swift`, `History.swift` | Settings (UserDefaults, the key in the Keychain), the one-time import of the 1.x settings, text history |
+| `Sources/SpeechToText/Overlay.swift` | The overlay over other apps |
+| `Sources/SpeechToText/Screens.swift` | The window's panes |
+| `Sources/SpeechToText/MacShell.swift`, `Theme.swift`, `Components.swift`, `Controls.swift` | The house frame and controls, the same as Cleaner and the Assistant |
+| `Resources/` | App icon, Montserrat, Tabler and menu bar icons as template PDFs, `en.lproj` and `pt-BR.lproj` |
+| `scripts/build.sh` | Builds and signs the app |
+| `scripts/dist.sh` | Bumps the patch version, builds, packs and notarizes the `.dmg`, installs it |
+| `scripts/check.sh` | End-to-end check of a built app |
+| `scripts/assets.mjs` | Regenerates the icon PDFs |
+| `scripts/release/` | `.dmg`, publishing to blob.ciromaciel.click, the one-line installer; used by `.github/workflows/release.yml` |
 
 ## Before you say it works
 
 ```bash
-bash scripts/whisper.sh
-bash scripts/parakeet.sh
-bun run build
-APP="src-tauri/target/release/bundle/macos/Speech to Text.app/Contents/MacOS"
-scripts/smoke-test.sh "$APP/speech-to-text" "$APP" path/to/ggml-tiny.bin path/to/jfk.wav
+scripts/build.sh
+scripts/check.sh
 ```
+
+`check.sh` runs a copy of the app under another identifier with `STT_DATA_DIR` in a temporary folder: it never touches the installed app, its history or its settings. The same hooks (`STT_E2E_TRIGGER`, `STT_E2E_WAV`, `STT_DATA_DIR`) drive any other check; never run one against the person's own data folder.
 
 ## Rules that must hold
 
-- The audio never leaves the Mac. Network calls: model download (Hugging Face), update check (`blob.ciromaciel.click`), and Refine and Translate only when turned on. Nothing else, and no remote fonts or scripts in `src/`.
-- The bundle identifier `click.ciromaciel.speech-to-text` never changes: macOS ties Microphone and Accessibility to it.
-- `latest.json` and the updater's public key in `tauri.conf.json` belong to the official build; a fork changes both.
-- The version lives in `package.json`; bumping it on `main` is a release.
-- Bun, never npm. Code, comments and file names are in English.
-- Every user-facing string exists in English and Brazilian Portuguese (en.lproj / pt-BR.lproj or the i18n module); a change that adds text adds both. The interface follows the Mac's language (first preferred language starting with `pt` → Brazilian Portuguese, anything else → English), with no in-app switch: `src/i18n.js` for the window and the overlay, `src-tauri/src/i18n.rs` (`tr(en, pt)`) for the menu bar and dialogs, `src-tauri/locales/<lang>.lproj/InfoPlist.strings` for the permission prompts. The dictation language (Whisper) and the translation target are separate settings and never follow the interface.
+- The audio never leaves the Mac. Network calls: the model download (Hugging Face), and Refine and Translate only when turned on. Nothing else, and no remote fonts or images.
+- The bundle identifier `click.ciromaciel.speech-to-text` never changes, and builds are signed with the same identity: macOS ties Microphone and Accessibility to both.
+- The model folder (`~/Library/Application Support/speech-to-text/models/parakeet-ultra`, with its `ready` marker) and `history.json` keep the 1.x layout, so moving between versions loses nothing.
+- The version lives in `VERSION`. Publishing is the release workflow, run by hand.
+- Code, comments and file names are in English.
+- Every user-facing string exists in English and Brazilian Portuguese: `Resources/en.lproj` and `Resources/pt-BR.lproj` (`Localizable.strings`, and `InfoPlist.strings` for the permission prompts), always the same keys in both. Every on-screen string goes through `L(...)`. The interface follows the Mac's language; the spoken language and the translation target are settings of their own.
+- The window follows the house frame (Cleaner's): logotype, grouped menu, status line, version line. Icons only from Tabler, as template PDFs made by `scripts/assets.mjs`.

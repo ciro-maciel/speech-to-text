@@ -5,37 +5,32 @@ Thanks for helping. Speech to Text hears people and types into their apps, so th
 ## Setup
 
 ```bash
-bun install
-bash scripts/whisper.sh      # whisper.cpp sidecars and the voice detector
-bun run dev
+scripts/build.sh             # → dist/Speech to Text.app
 ```
 
-You need the Xcode Command Line Tools, Rust, Bun and CMake. Use Bun, not npm: there is one lockfile, `bun.lock`.
+You need macOS 14 or later on Apple Silicon and the Xcode Command Line Tools (Swift 5.10 or later). The one dependency, FluidAudio, comes through Swift Package Manager, pinned in `Package.resolved`.
 
 ## Before you open a pull request
 
-Build the app and run the end-to-end check on your Mac. It transcribes a known sample with both sidecars, then starts the packaged app with a throwaway home folder and waits for it to load the model:
+Build the app and run the end-to-end check on your Mac. It runs a copy of the app under another identifier, in a temporary data folder, and checks a dictation made with `say`, silence and Esc:
 
 ```bash
-bun run build
-curl -fsSLo /tmp/jfk.wav https://github.com/ggml-org/whisper.cpp/raw/v1.8.4/samples/jfk.wav
-curl -fsSLo /tmp/ggml-tiny.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin
-APP="src-tauri/target/release/bundle/macos/Speech to Text.app/Contents/MacOS"
-scripts/smoke-test.sh "$APP/speech-to-text" "$APP" /tmp/ggml-tiny.bin /tmp/jfk.wav
+scripts/build.sh
+scripts/check.sh
 ```
 
-Quit any running Speech to Text first: a second copy hands over to the open one and exits. If your change touches the window, attach a capture.
+It needs the Parakeet model downloaded once (the app's Transcription screen). If your change touches the window, attach a capture.
 
 ## House rules
 
-- **The audio never leaves the Mac.** Transcription stays in whisper.cpp, on device. The only network calls are the model download, the update check and, when the person turns them on, Refine and Translate (text only, their own key). A new one needs a reason in the pull request and a line in the README's Privacy section.
-- No analytics, no account, no remote font or script: the window loads only what is in `src/`.
+- **The audio never leaves the Mac.** Transcription stays in Parakeet, on device. The only network calls are the model download and, when the person turns them on, Refine and Translate (text only, their own key). A new one needs a reason in the pull request and a line in the README's Privacy section.
+- No analytics, no account, no remote font or image.
 - Code, comments and file names in English. The interface is in English and Brazilian Portuguese, following the Mac's language.
-- Every user-facing string exists in English and Brazilian Portuguese (en.lproj / pt-BR.lproj or the i18n module); a change that adds text adds both. In this app that is `src/i18n.js` for the window and the overlay, `src-tauri/src/i18n.rs` (`tr(en, pt)`) for the menu bar and dialogs, and `src-tauri/locales/<lang>.lproj/InfoPlist.strings` for the permission prompts.
+- Every user-facing string exists in English and Brazilian Portuguese, with the same keys in `Resources/en.lproj` and `Resources/pt-BR.lproj`; a change that adds text adds both.
 - The bundle identifier (`click.ciromaciel.speech-to-text`) never changes: macOS ties Microphone and Accessibility to it.
 
 ## Reporting a bug
 
-Say which macOS version, which Mac, which model and what the app showed. The log folder is one click away in the settings window. Never paste an API key or a private transcript into an issue.
+Say which macOS version, which Mac and what the app showed. The app logs to the system log: `log show --last 10m --predicate 'process == "SpeechToText"'`. Never paste an API key or a private transcript into an issue.
 
 For anything that could expose someone's voice, text or key, read [SECURITY.md](SECURITY.md) first.

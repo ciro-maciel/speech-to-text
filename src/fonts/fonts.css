@@ -1,6 +1,0 @@
-/* Montserrat, bundled with the app so no window ever asks a font server for it.
-   SIL Open Font License 1.1 (OFL.txt). */
-@font-face { font-family: Montserrat; font-weight: 500; font-style: normal; src: url('Montserrat-Medium.ttf') format('truetype'); }
-@font-face { font-family: Montserrat; font-weight: 700; font-style: normal; src: url('Montserrat-Bold.ttf') format('truetype'); }
-@font-face { font-family: Montserrat; font-weight: 800; font-style: normal; src: url('Montserrat-ExtraBold.ttf') format('truetype'); }
-@font-face { font-family: Montserrat; font-weight: 900; font-style: normal; src: url('Montserrat-Black.ttf') format('truetype'); }

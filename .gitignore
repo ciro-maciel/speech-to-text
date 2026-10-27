@@ -1,16 +1,3 @@
-node_modules/
-src-tauri/target/
-src-tauri/gen/
+.build/
+dist/
 .DS_Store
-.env
-
-# Made by scripts/whisper.sh: whisper.cpp, built from source, and the voice detector.
-.whisper/
-src-tauri/whisper-cli-*
-src-tauri/whisper-server-*
-src-tauri/resources/
-
-# Made by scripts/parakeet.sh: the Parakeet sidecar and its SwiftPM build.
-.parakeet/
-parakeet/.build/
-src-tauri/parakeet-server-*
