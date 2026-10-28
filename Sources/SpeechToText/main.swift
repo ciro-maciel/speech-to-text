@@ -72,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        recorder.stopEngine()
+        recorder.closeNow()
         SystemAudio.restoreNow()
     }
 

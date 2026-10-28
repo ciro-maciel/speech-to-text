@@ -51,7 +51,7 @@
 "dict.mic.hint" = "O medidor segue a sua voz.";
 "dict.mic.default" = "Padrão do sistema";
 "dict.warm" = "Manter o microfone pronto";
-"dict.warm.hint" = "Aberto entre ditados, para a primeira palavra nunca ser cortada. A bolinha laranja fica acesa.";
+"dict.warm.hint" = "Desligado, o microfone só abre no atalho e um sinal avisa quando falar. Ligado, fica aberto entre ditados, sem espera, e a bolinha laranja fica acesa. Nada é gravado fora do atalho.";
 "dict.language" = "Idioma falado";
 "dict.language.hint" = "O Parakeet ouve 25 idiomas europeus e acha o que você fala; isto o mantém no seu.";
 "dict.sounds" = "Som ao começar e terminar";
@@ -130,6 +130,7 @@
 "hud.micSilent" = "Microfone sem sinal";
 "hud.listeningTranslate" = "Ouvindo · traduzir";
 "hud.listening" = "Ouvindo";
+"hud.preparing" = "Preparando";
 "hud.words.one" = "%d palavra";
 "hud.words.other" = "%d palavras";
 "hud.transcribing" = "Transcrevendo";

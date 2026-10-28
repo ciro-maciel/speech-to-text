@@ -51,7 +51,7 @@ Every shortcut can be changed in the settings window, opened from the menu bar i
 | Languages | The 25 European languages Parakeet knows, Portuguese and English included |
 | Interface | English and Brazilian Portuguese, following the Mac's language |
 | Silence | Parakeet returns nothing for silence and room noise, so a press with no speech pastes nothing |
-| Microphone | Kept ready between dictations by default, with the last 300 ms kept, so the first word is never cut |
+| Microphone | Opens on the shortcut and a tone says when to speak; closed between dictations, so the orange dot is off. Optionally kept ready, with no wait and the last 300 ms kept |
 | Glossary | Names, brands and acronyms that Refine writes the way you registered them |
 | Refine and translate | Optional. Cleans up hesitations or translates the dictation through [OpenRouter](https://openrouter.ai), with your own key and the model you pick |
 | History | What you dictated, text only, kept on your Mac for 7 or 30 days, or only in memory |

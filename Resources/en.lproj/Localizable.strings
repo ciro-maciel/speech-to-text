@@ -51,7 +51,7 @@
 "dict.mic.hint" = "The meter follows your voice.";
 "dict.mic.default" = "System default";
 "dict.warm" = "Keep the microphone ready";
-"dict.warm.hint" = "Open between dictations, so the first word is never cut. The orange dot stays on.";
+"dict.warm.hint" = "Off, the microphone opens on the shortcut and a tone says when to speak. On, it stays open between dictations, with no wait, and the orange dot stays on. Nothing is recorded outside the shortcut.";
 "dict.language" = "Spoken language";
 "dict.language.hint" = "Parakeet hears 25 European languages and finds the one you speak; this keeps it on yours.";
 "dict.sounds" = "Sound on start and finish";
@@ -130,6 +130,7 @@
 "hud.micSilent" = "Microphone silent";
 "hud.listeningTranslate" = "Listening · translate";
 "hud.listening" = "Listening";
+"hud.preparing" = "Preparing";
 "hud.words.one" = "%d word";
 "hud.words.other" = "%d words";
 "hud.transcribing" = "Transcribing";

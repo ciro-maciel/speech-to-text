@@ -143,15 +143,38 @@ final class Dictation: ObservableObject {
         isLocked = false
         isTapPending = false
         self.mode = mode
-        if settings.sounds { Tones.play(880) }
         recorder.begin()
+        // A closed microphone takes about 0.2 s to deliver: the overlay says "preparing" and the
+        // start tone waits for the first real audio, so it means "speak now". Without "keep the
+        // microphone ready" it always plays, since it is the signal; kept ready, it follows the setting.
+        let hasTone = settings.sounds || !settings.keepMicrophoneWarm
+        if recorder.isReady {
+            if hasTone { Tones.play(880) }
+            muteAfterTone(hasTone)
+        } else {
+            recorder.onReady = { [weak self] in
+                guard let self, self.isRecording else { return }
+                Tones.play(880)
+                self.listeningSince = Date()
+                self.muteAfterTone(true)
+            }
+        }
         setOverlay(.listening(translate: mode == .translate, locked: false))
         activity = .listening
         listeningSince = Date()
         if settings.escCancels { onEscapeNeeded(true) }
-        if settings.muteWhileDictating { SystemAudio.mute() }
         // The model loads while the person speaks, if it isn't already.
         Task { try? await transcriber.load(); isModelLoaded = await transcriber.isLoaded }
+    }
+
+    /// Muting the Mac before the tone silenced the tone itself: it waits for the tone's 100 ms.
+    private func muteAfterTone(_ hasTone: Bool) {
+        guard settings.muteWhileDictating else { return }
+        guard hasTone else { SystemAudio.mute(); return }
+        Task {
+            try? await Task.sleep(for: .milliseconds(150))
+            if isRecording { SystemAudio.mute() }
+        }
     }
 
     private func stop() {

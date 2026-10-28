@@ -51,7 +51,7 @@ Todos os atalhos podem ser trocados na janela de ajustes, aberta pelo ícone na 
 | Idiomas | Os 25 idiomas europeus que o Parakeet conhece, português e inglês entre eles |
 | Interface | Inglês e português do Brasil, seguindo o idioma do Mac |
 | Silêncio | O Parakeet devolve nada para silêncio e ruído de ambiente, então um toque sem fala não cola nada |
-| Microfone | Fica pronto entre ditados por padrão, guardando os últimos 300 ms, para a primeira palavra nunca ser cortada |
+| Microfone | Abre no atalho e um sinal avisa quando falar; fica fechado entre ditados, então a bolinha laranja apaga. Opcionalmente fica pronto, sem espera e guardando os últimos 300 ms |
 | Glossário | Nomes, marcas e siglas que o refinamento escreve do jeito que você cadastrou |
 | Refinar e traduzir | Opcional. Tira hesitações ou traduz o ditado pelo [OpenRouter](https://openrouter.ai), com a sua chave e o modelo que você escolher |
 | Histórico | O que você ditou, só texto, guardado no seu Mac por 7 ou 30 dias, ou só na memória |

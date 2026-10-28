@@ -84,7 +84,7 @@ final class AppSettings: ObservableObject {
         language = d.string(forKey: "language") ?? "pt"
         autoPaste = d.object(forKey: "autoPaste") as? Bool ?? true
         microphone = d.string(forKey: "microphone")
-        keepMicrophoneWarm = d.object(forKey: "keepMicrophoneWarm") as? Bool ?? true
+        keepMicrophoneWarm = d.object(forKey: "keepMicrophoneWarm") as? Bool ?? false
         escCancels = d.object(forKey: "escCancels") as? Bool ?? true
         sounds = d.object(forKey: "sounds") as? Bool ?? false
         muteWhileDictating = d.object(forKey: "muteWhileDictating") as? Bool ?? false

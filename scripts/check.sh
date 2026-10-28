@@ -33,7 +33,11 @@ send() { print "$1" > "$TRIGGER"; sleep 0.3; }
 dictate() { # wav → waits for a new history entry
     local before=$(count)
     cp "$1" "$WORK/input.wav"
-    send "press transcribe"; sleep 1.5; send "release transcribe"
+    local readies=$(grep -c 'ready after' "$WORK/app.log")
+    send "press transcribe"
+    # Released after the signal to speak, as a person would: a Bluetooth headset takes seconds.
+    for _ in {1..100}; do [ "$(grep -c 'ready after' "$WORK/app.log")" -gt "$readies" ] && break; sleep 0.1; done
+    sleep 0.5; send "release transcribe"
     for _ in {1..60}; do [ "$(count)" -gt "$before" ] && return 0; sleep 0.5; done
     return 1
 }
@@ -61,8 +65,11 @@ STT_DATA_DIR="$DATA" STT_E2E_TRIGGER="$TRIGGER" STT_E2E_WAV="$WORK/input.wav" "$
 PID=$!
 # Whatever happens below, the copy goes: a copy left running makes the next one quit (one instance per identifier).
 trap 'kill $PID 2>/dev/null' EXIT
-for _ in {1..120}; do grep -q "\[parakeet\] preloaded" "$WORK/app.log" && grep -q "microphone open" "$WORK/app.log" && break; sleep 0.5; done
-grep -q "\[parakeet\] preloaded" "$WORK/app.log" && ok "starts, loads Parakeet and opens the microphone" || bad "did not load: $(tail -3 "$WORK/app.log")"
+for _ in {1..120}; do grep -q "\[parakeet\] preloaded" "$WORK/app.log" && break; sleep 0.5; done
+grep -q "\[parakeet\] preloaded" "$WORK/app.log" && ok "starts and loads Parakeet" || bad "did not load: $(tail -3 "$WORK/app.log")"
+# The default since 2.1: the microphone is closed until the shortcut, and the orange dot is off.
+sleep 1
+grep -q "microphone open" "$WORK/app.log" && bad "the microphone opened before any dictation" || ok "microphone closed until the shortcut"
 [ "$(count)" = 0 ] && ok "nothing dictated on its own" || bad "dictated before any command"
 
 if dictate "$WORK/speech.wav"; then
@@ -70,6 +77,8 @@ if dictate "$WORK/speech.wav"; then
 else
     bad "the dictation never finished"
 fi
+READY="$(grep -o 'ready after [0-9]*ms' "$WORK/app.log" | head -1)"
+[ -n "$READY" ] && ok "the signal to speak, $READY of the shortcut" || bad "no ready signal on a cold microphone"
 if dictate "$WORK/silence.wav"; then
     last | grep -q "^nothing" && ok "silence pastes nothing" || bad "silence became text: $(last)"
 else

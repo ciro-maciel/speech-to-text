@@ -30,12 +30,14 @@ struct OverlayView: View {
             EmptyView()
         case let .listening(translate, locked):
             let isDead = recorder.isSignalDead
+            let isPreparing = !recorder.isReady && !isDead
             HStack(spacing: 12) {
-                label(isDead ? L("hud.micSilent") : L(translate ? "hud.listeningTranslate" : "hud.listening"), muted: isDead)
-                LevelBars(level: recorder.level, color: isDead ? Zen.gray7 : Zen.gray0)
+                label(isDead ? L("hud.micSilent") : isPreparing ? L("hud.preparing")
+                      : L(translate ? "hud.listeningTranslate" : "hud.listening"), muted: isDead || isPreparing)
+                LevelBars(level: isPreparing ? 0 : recorder.level, color: isDead || isPreparing ? Zen.gray7 : Zen.gray0)
                 if locked {
                     meta(L("hud.handsFree"))
-                } else if settings.overlayShowTimer, let since = dictation.listeningSince {
+                } else if settings.overlayShowTimer, !isPreparing, let since = dictation.listeningSince {
                     TimelineView(.periodic(from: since, by: 0.25)) { context in
                         meta(Self.clock(context.date.timeIntervalSince(since)))
                     }
