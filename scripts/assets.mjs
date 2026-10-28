@@ -4,11 +4,13 @@
 //   - the menu bar: the letter S cut out of an 18 pt square (13-favicon.md), and its states as a
 //     badge cut into the bottom-right corner. In PDF the cut is a clip-path, never a mask:
 //     rsvg-convert turns a mask into soft transparency and the template image loses the square.
-// The app icon (Resources/AppIcon.icns) comes from the same favicon tool: S, Candal, 555555 on white, size 60.
+//   - the app icon (Resources/AppIcon.icns): the letter S from the same favicon tool (Candal, 555555 on
+//     white, size 60), at every size macOS asks for
 //
-// Needs rsvg-convert (brew install librsvg). Run from anywhere: bun scripts/assets.mjs
+// Needs rsvg-convert (brew install librsvg), sips and iconutil (both ship with macOS).
+// Run from anywhere: bun scripts/assets.mjs
 import { $ } from 'bun';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -51,7 +53,23 @@ let raw = await res.text();
 if (raw.startsWith('event:') || raw.startsWith('data:')) raw = raw.split('\n').find(l => l.startsWith('data:')).slice(5);
 const result = JSON.parse(raw).result;
 if (result.isError) throw new Error(`favicon tool: ${result.content?.[0]?.text}`);
-const letter = (result.structuredContent ?? JSON.parse(result.content[0].text)).svg.match(/<path[^>]* d="([^"]+)"/)[1];
+const icon = (result.structuredContent ?? JSON.parse(result.content[0].text)).svg;
+const letter = icon.match(/<path[^>]* d="([^"]+)"/)[1];
+
+// --- app icon ------------------------------------------------------------------
+const iconSvg = join(tmp, 'icon.svg');
+writeFileSync(iconSvg, icon);
+const iconset = join(tmp, 'AppIcon.iconset');
+rmSync(iconset, { recursive: true, force: true });
+mkdirSync(iconset);
+const master = join(tmp, 'icon-1024.png');
+await $`rsvg-convert -w 1024 -h 1024 -o ${master} ${iconSvg}`.quiet();
+for (const size of [16, 32, 128, 256, 512]) {
+  await $`sips -z ${size} ${size} ${master} --out ${join(iconset, `icon_${size}x${size}.png`)}`.quiet();
+  await $`sips -z ${size * 2} ${size * 2} ${master} --out ${join(iconset, `icon_${size}x${size}@2x.png`)}`.quiet();
+}
+await $`iconutil -c icns -o ${join(ROOT, 'Resources', 'AppIcon.icns')} ${iconset}`.quiet();
+console.log(`app icon: ${LETTER}`);
 
 // The square with the letter cut out; with a badge, the corner circle (r 23 at 85,85) cut too.
 const square = `M0 0H100V100H0Z ${letter}`;

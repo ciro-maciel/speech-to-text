@@ -29,6 +29,8 @@ mkdir -p "$APP/Contents/MacOS" "$RESOURCES"
 # The executable keeps the 1.x name: the Tauri updater relaunches it by that path after
 # moving a copy to 2, and the 1.x login item points to it.
 cp "$BIN" "$APP/Contents/MacOS/speech-to-text"
+# The symbols out of the shipped binary: half its size. Crash reports still locate each frame.
+strip -rSTx "$APP"/Contents/MacOS/*
 # Every build carries VERSION; the window's footer reads it back.
 sed "s/__VERSION__/$VERSION/g" "$ROOT/Resources/Info.plist" > "$APP/Contents/Info.plist"
 cp -R "$ROOT/Resources/AppIcon.icns" "$ROOT/Resources/Fonts" "$ROOT/Resources/Icons" \
