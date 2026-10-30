@@ -8,27 +8,17 @@ import ServiceManagement
 enum Paster {
     enum Outcome { case pasted, needsPermission }
 
-    /// The text goes to the clipboard and ⌘V to the app in front; the clipboard comes back
-    /// after. Without Accessibility the text stays on the clipboard.
+    /// The text goes to the clipboard and ⌘V to the app in front, and stays on the clipboard.
+    /// It used to put the old clipboard back 400 ms later; an app slower than that to read it
+    /// (VS Code while busy) pasted the old one, often an earlier dictation (30/10/2026).
     static func paste(_ text: String) async -> Outcome {
         let board = NSPasteboard.general
-        let saved = board.string(forType: .string)
         board.clearContents()
         board.setString(text, forType: .string)
         guard AXIsProcessTrusted() else { return .needsPermission }
         // Let the pasteboard settle before the destination reads it.
         try? await Task.sleep(for: .milliseconds(30))
         postCommandV()
-        if let saved, !saved.isEmpty, saved != text {
-            Task {
-                try? await Task.sleep(for: .milliseconds(400))
-                // Only if nobody wrote to the clipboard since.
-                if board.string(forType: .string) == text {
-                    board.clearContents()
-                    board.setString(saved, forType: .string)
-                }
-            }
-        }
         return .pasted
     }
 

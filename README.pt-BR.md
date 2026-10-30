@@ -55,7 +55,7 @@ Todos os atalhos podem ser trocados na janela de ajustes, aberta pelo ícone na 
 | Glossário | Nomes, marcas e siglas que o refinamento escreve do jeito que você cadastrou |
 | Refinar e traduzir | Opcional. Tira hesitações ou traduz o ditado pelo [OpenRouter](https://openrouter.ai), com a sua chave e o modelo que você escolher |
 | Histórico | O que você ditou, só texto, guardado no seu Mac por 7 ou 30 dias, ou só na memória |
-| Área de transferência | Usada por menos de meio segundo para colar, e depois volta ao que tinha antes |
+| Área de transferência | Guarda o último ditado, que é colado a partir dela; o que tinha antes é substituído |
 
 ## Privacidade
 

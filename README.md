@@ -55,7 +55,7 @@ Every shortcut can be changed in the settings window, opened from the menu bar i
 | Glossary | Names, brands and acronyms that Refine writes the way you registered them |
 | Refine and translate | Optional. Cleans up hesitations or translates the dictation through [OpenRouter](https://openrouter.ai), with your own key and the model you pick |
 | History | What you dictated, text only, kept on your Mac for 7 or 30 days, or only in memory |
-| Clipboard | Used for under half a second to paste, then restored to what it held before |
+| Clipboard | Holds the last dictation, which is pasted from it; what it held before is replaced |
 
 ## Privacy
 
