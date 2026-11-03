@@ -27,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private enum HotKey: UInt32 { case dictation = 1, translate = 2, pasteLast = 3, escape = 4 }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let isLogin = LoginLaunch.isNow()
         // One copy at a time: a second launch shows the first one's window and leaves.
         let id = Bundle.main.bundleIdentifier ?? ""
         if NSRunningApplication.runningApplications(withBundleIdentifier: id).contains(where: { $0 != .current }) {
@@ -66,7 +67,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         dictation.preload()
         E2E.watch { [weak self] command in self?.run(command) }
 
-        if !Recorder.isAuthorized || !Permissions.isAccessibilityOn || !Transcriber.isInstalled {
+        // Opened at login it stays in the menu bar, even with something missing.
+        if !isLogin && (!Recorder.isAuthorized || !Permissions.isAccessibilityOn || !Transcriber.isInstalled) {
             openWindow(Transcriber.isInstalled ? .permissions : .transcription)
         }
     }
