@@ -125,7 +125,7 @@ struct SettingValue: View {
     var body: some View { Text(text).font(Zen.font(13, .bold)).foregroundStyle(Zen.gray9) }
 }
 
-/// The house Select, from Clips (operations/videos/clips-swift/Sources/Clips/UI/TrayView.swift):
+/// The house Select, from Clips (operations/videos/clips/Sources/Clips/UI/TrayView.swift):
 /// the Mantine Select of the web panels in our look. A square field with the chevron, gray.9
 /// border while open; the list opens right under it, inside the window, in a gray.3 border
 /// without shadow, the chosen item with the Tabler check. Never the system's menu.
